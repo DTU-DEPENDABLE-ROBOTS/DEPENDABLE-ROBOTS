@@ -604,7 +604,6 @@ bool UMission::mission1(int & state)
       break;
     
     case 10:
-    {
       printf("\n");
       int line = 0;
       
@@ -630,8 +629,7 @@ bool UMission::mission1(int & state)
       if (bridge->event->isEventSet(1))
       { // finished first drive
         state = 999;
-      }
-      }      
+      }     
       break;
     case 999:
     default:

@@ -593,7 +593,6 @@ bool UMission::mission3(int & state)
   {
     case 30:
       printf("\n");
-          // debug end
       int line = 0;
       snprintf(lines[line++], MAX_LEN,   "vel=0.2, log=5, acc=2: xl>16, dist=2.5");
       snprintf(lines[line++], MAX_LEN,   ":xl < 4,dist=0.2");
@@ -623,6 +622,7 @@ bool UMission::mission3(int & state)
       { // finished first drive
         state = 999;
       }
+      break;
     case 999:
     default:
       printf("mission 3 ended\n");

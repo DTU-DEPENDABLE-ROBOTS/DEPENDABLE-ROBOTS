@@ -604,22 +604,26 @@ bool UMission::mission1(int & state)
       break;
     
     case 10:
+    {
       printf("\n");
       int line = 0;
-      
+
+      // make sure event 1 is cleared
+      bridge->event->isEventSet(1);
+
       snprintf(lines[line++], MAX_LEN,   "vel=0.2, log=5, acc=2, white=1: xl>16, dist=2.5");
       snprintf(lines[line++], MAX_LEN,   ":xl < 4,dist=0.2");
       snprintf(lines[line++], MAX_LEN,   "vel=0,event=1:time=0.1");
       sendAndActivateSnippet(lines, line);
-      // make sure event 2 is cleared
-      bridge->event->isEventSet(1);
-      //
+      
+  
       // debug
       for (int i = 0; i < line; i++)
       { // print sent lines
         printf("# line %d: %s\n", i, lines[i]);
       }
       // debug end
+      
       // tell the operator
       printf("# Sent mission snippet to marker (%d lines)\n", line);
       //system("espeak \"code snippet to marker.\" -ven+f4 -s130 -a20 2>/dev/null &"); 
@@ -629,7 +633,8 @@ bool UMission::mission1(int & state)
       if (bridge->event->isEventSet(1))
       { // finished first drive
         state = 999;
-      }     
+      }
+    }      
       break;
     case 999:
     default:

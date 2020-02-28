@@ -615,7 +615,7 @@ bool UMission::mission1(int & state)
         snprintf(lines[line++], MAX_LEN,   ":xl < 4,dist=0.2");
         snprintf(lines[line++], MAX_LEN,   "vel=0:time=0.1");
         snprintf(lines[line++], MAX_LEN,   "tr=0,vel=0.2:turn=-90");
-        snprintf(lines[line++], MAX_LEN,   "edgel=0, white=1: dist=0.5");, 
+        snprintf(lines[line++], MAX_LEN,   "edgel=0, white=1: dist=0.5");
         snprintf(lines[line++], MAX_LEN,   "vel=0, event=1:time=0.1");
         sendAndActivateSnippet(lines, line);
     

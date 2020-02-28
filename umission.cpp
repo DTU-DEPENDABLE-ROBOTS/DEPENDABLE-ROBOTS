@@ -592,18 +592,6 @@ bool UMission::mission1(int & state)
   switch (state)
   {
     case 0:
-      // tell the operatior what to do
-      printf("# press green to start.\n");
-      system("espeak \"press green to start\" -ven+f4 -s130 -a5 2>/dev/null &"); 
-      bridge->send("oled 5 press green to start");
-      state++;
-      break;
-    case 1:
-      if (bridge->joy->button[BUTTON_GREEN])
-        state = 10;
-      break;
-    
-    case 10:
       {
         printf("\n");
         int line = 0;
@@ -612,7 +600,7 @@ bool UMission::mission1(int & state)
         bridge->event->isEventSet(1);
 
         snprintf(lines[line++], MAX_LEN,   "vel=0.2, log=5, acc=2, white=1: xl>16, dist=2.5");
-        snprintf(lines[line++], MAX_LEN,   ":xl < 4,dist=0.2");
+        snprintf(lines[line++], MAX_LEN,   ":xl < 4,dist=0.1");
         snprintf(lines[line++], MAX_LEN,   "vel=0:time=0.1");
         snprintf(lines[line++], MAX_LEN,   "tr=0,vel=0.2:turn=-90");
         snprintf(lines[line++], MAX_LEN,   "edgel=0, white=1: dist=0.5");

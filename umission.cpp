@@ -239,16 +239,16 @@ void UMission::runMission()
         }
         switch(mission)
         {
-          /*case 1: // running auto mission
+          case 1: // running auto mission
             ended = mission1(missionState);
             break;
-          case 2:
+          /*case 2:
             ended = mission2(missionState);
-            break;*/
+            break;
           case 3:
             ended = mission3(missionState);
-            break;
-          case 4:
+            break;*/
+          case 2:
             ended = mission4(missionState);
             break;
           default:
@@ -338,7 +338,7 @@ void UMission::runMission()
  *              therefore defined as reference with the '&'.
  *              State will be 0 at first call.
  * \returns true, when finished. */
-bool UMission::mission1(int & state)
+/*bool UMission::mission1(int & state)
 {
   bool finished = false;
   // First commands to send to robobot in given mission
@@ -398,7 +398,7 @@ bool UMission::mission1(int & state)
       break;
   }
   return finished;
-}
+}*/
 
 
 /**
@@ -407,7 +407,7 @@ bool UMission::mission1(int & state)
  *              therefore defined as reference with the '&'.
  *              State will be 0 at first call.
  * \returns true, when finished. */
-bool UMission::mission2(int & state)
+/*bool UMission::mission2(int & state)
 {
   bool finished = false;
   // First commands to send to robobot in given mission
@@ -576,7 +576,7 @@ bool UMission::mission2(int & state)
   }
   // printf("# mission1 return (state=%d, finished=%d, )\n", state, finished);
   return finished;
-}
+}*/
 
 
 
@@ -586,12 +586,24 @@ bool UMission::mission2(int & state)
  *              therefore defined as reference with the '&'.
  *              State will be 0 at first call.
  * \returns true, when finished. */
-bool UMission::mission3(int & state)
+bool UMission::mission1(int & state)
 {
   bool finished = false;
   switch (state)
   {
     case 0:
+      // tell the operatior what to do
+      printf("# press green to start.\n");
+      system("espeak \"press green to start\" -ven+f4 -s130 -a5 2>/dev/null &"); 
+      bridge->send("oled 5 press green to start");
+      state++;
+      break;
+    case 1:
+      if (bridge->joy->button[BUTTON_GREEN])
+        state = 10;
+      break;
+    
+    case 10:
     {
       printf("\n");
       int line = 0;

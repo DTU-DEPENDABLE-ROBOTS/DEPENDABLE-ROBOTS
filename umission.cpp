@@ -595,14 +595,13 @@ bool UMission::mission3(int & state)
     {
       printf("\n");
       int line = 0;
-      snprintf(lines[line++], MAX_LEN,   "vel=0.2, log=5, acc=2: xl>16, dist=2.5");
+      
+      snprintf(lines[line++], MAX_LEN,   "vel=0.2, log=5, acc=2, white=1: xl>16, dist=2.5");
       snprintf(lines[line++], MAX_LEN,   ":xl < 4,dist=0.2");
-      snprintf(lines[line++], MAX_LEN,   "vel=0:time=0.3");
-      snprintf(lines[line++], MAX_LEN,   "tr=0,vel=0.2:turn=-90");
-      snprintf(lines[line++], MAX_LEN,   "edgel=0, white=1: dist=0.5");
+      snprintf(lines[line++], MAX_LEN,   "vel=0,event=1:time=0.1");
       sendAndActivateSnippet(lines, line);
       // make sure event 2 is cleared
-      bridge->event->isEventSet(2);
+      bridge->event->isEventSet(1);
       //
       // debug
       for (int i = 0; i < line; i++)
@@ -615,15 +614,12 @@ bool UMission::mission3(int & state)
       //system("espeak \"code snippet to marker.\" -ven+f4 -s130 -a20 2>/dev/null &"); 
       bridge->send("oled 5 code to marker");
       // wait for movement to finish
-      state = 41;
-      }      
-      break;
-    case 1:
       // wait for event 1 (send when finished driving first part)
       if (bridge->event->isEventSet(1))
       { // finished first drive
         state = 999;
       }
+      }      
       break;
     case 999:
     default:

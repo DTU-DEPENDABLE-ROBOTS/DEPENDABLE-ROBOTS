@@ -591,7 +591,7 @@ bool UMission::mission3(int & state)
   bool finished = false;
   switch (state)
   {
-    /*case 40:
+    case 0:
     {
       printf("\n");
       int line = 0;
@@ -618,13 +618,13 @@ bool UMission::mission3(int & state)
       state = 41;
       }      
       break;
-    case 41:
+    case 1:
       // wait for event 1 (send when finished driving first part)
       if (bridge->event->isEventSet(1))
       { // finished first drive
         state = 999;
       }
-      break;*/
+      break;
     case 999:
     default:
       printf("mission 3 ended\n");

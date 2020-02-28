@@ -603,8 +603,8 @@ bool UMission::mission1(int & state)
         //snprintf(lines[line++], MAX_LEN,   "vel=0:time=0.1");
         //snprintf(lines[line++], MAX_LEN,   "vel=-0.1, acc=2: dist=0.1");
         snprintf(lines[line++], MAX_LEN,   "vel=0:time=0.1");
-        snprintf(lines[line++], MAX_LEN,   "tr=0,vel=0.4:turn=-90");
-        snprintf(lines[line++], MAX_LEN,   "edgel=0, white=1: dist=6");
+        snprintf(lines[line++], MAX_LEN,   "tr=0,vel=0.5:turn=-90");
+        snprintf(lines[line++], MAX_LEN,   "edgel=0, white=1: dist=4.5");
         snprintf(lines[line++], MAX_LEN,   "vel=0, event=1:time=0.1");
         sendAndActivateSnippet(lines, line);
     

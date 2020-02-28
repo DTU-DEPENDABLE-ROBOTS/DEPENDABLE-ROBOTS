@@ -591,10 +591,10 @@ bool UMission::mission3(int & state)
   bool finished = false;
   switch (state)
   {
-    case 1:
+    case 30:
       printf("\n");
           // debug end
-          int line = 0;
+      int line = 0;
       snprintf(lines[line++], MAX_LEN,   "vel=0.2, log=5, acc=2: xl>16, dist=2.5");
       snprintf(lines[line++], MAX_LEN,   ":xl < 4,dist=0.2");
       snprintf(lines[line++], MAX_LEN,   "vel=0:time=0.3");
@@ -617,7 +617,12 @@ bool UMission::mission3(int & state)
       // wait for movement to finish
       state = 999;      
       break;
-
+    case 31:
+      // wait for event 1 (send when finished driving first part)
+      if (bridge->event->isEventSet(1))
+      { // finished first drive
+        state = 999;
+      }
     case 999:
     default:
       printf("mission 3 ended\n");

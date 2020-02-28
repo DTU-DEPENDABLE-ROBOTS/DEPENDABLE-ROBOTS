@@ -604,37 +604,40 @@ bool UMission::mission1(int & state)
       break;
     
     case 10:
-    {
-      printf("\n");
-      int line = 0;
+      {
+        printf("\n");
+        int line = 0;
 
-      // make sure event 1 is cleared
-      bridge->event->isEventSet(1);
+        // make sure event 1 is cleared
+        bridge->event->isEventSet(1);
 
-      snprintf(lines[line++], MAX_LEN,   "vel=0.2, log=5, acc=2, white=1: xl>16, dist=2.5");
-      snprintf(lines[line++], MAX_LEN,   ":xl < 4,dist=0.2");
-      snprintf(lines[line++], MAX_LEN,   "vel=0,event=1:time=0.1");
-      sendAndActivateSnippet(lines, line);
-      
-  
-      // debug
-      for (int i = 0; i < line; i++)
-      { // print sent lines
-        printf("# line %d: %s\n", i, lines[i]);
+        snprintf(lines[line++], MAX_LEN,   "vel=0.2, log=5, acc=2, white=1: xl>16, dist=2.5");
+        snprintf(lines[line++], MAX_LEN,   ":xl < 4,dist=0.2");
+        snprintf(lines[line++], MAX_LEN,   "vel=0,event=1:time=0.1");
+        sendAndActivateSnippet(lines, line);
+    
+        // debug
+        for (int i = 0; i < line; i++)
+        { // print sent lines
+          printf("# line %d: %s\n", i, lines[i]);
+        }
+        // debug end
+        
+        // tell the operator
+        printf("# Sent mission snippet to marker (%d lines)\n", line);
+        //system("espeak \"code snippet to marker.\" -ven+f4 -s130 -a20 2>/dev/null &"); 
+        bridge->send("oled 5 code to marker");
+        // wait for movement to finish
+        // wait for event 1 (send when finished driving first part)
+        state = 11;
       }
-      // debug end
-      
-      // tell the operator
-      printf("# Sent mission snippet to marker (%d lines)\n", line);
-      //system("espeak \"code snippet to marker.\" -ven+f4 -s130 -a20 2>/dev/null &"); 
-      bridge->send("oled 5 code to marker");
-      // wait for movement to finish
-      // wait for event 1 (send when finished driving first part)
+      break;
+    case 11:
       if (bridge->event->isEventSet(1))
       { // finished first drive
+        printf("White line reached!\n");
         state = 999;
       }
-    }      
       break;
     case 999:
     default:

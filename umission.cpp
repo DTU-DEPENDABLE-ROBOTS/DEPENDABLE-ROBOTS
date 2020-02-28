@@ -592,6 +592,7 @@ bool UMission::mission3(int & state)
   switch (state)
   {
     case 40:
+    {
       printf("\n");
       int line = 0;
       snprintf(lines[line++], MAX_LEN,   "vel=0.2, log=5, acc=2: xl>16, dist=2.5");
@@ -614,7 +615,8 @@ bool UMission::mission3(int & state)
       //system("espeak \"code snippet to marker.\" -ven+f4 -s130 -a20 2>/dev/null &"); 
       bridge->send("oled 5 code to marker");
       // wait for movement to finish
-      state = 41;      
+      state = 41;
+      }      
       break;
     case 41:
       // wait for event 1 (send when finished driving first part)

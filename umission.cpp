@@ -615,7 +615,7 @@ bool UMission::mission3(int & state)
       //system("espeak \"code snippet to marker.\" -ven+f4 -s130 -a20 2>/dev/null &"); 
       bridge->send("oled 5 code to marker");
       // wait for movement to finish
-      state = 999;      
+      state = 31;      
       break;
     case 31:
       // wait for event 1 (send when finished driving first part)

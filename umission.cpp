@@ -591,6 +591,33 @@ bool UMission::mission3(int & state)
   bool finished = false;
   switch (state)
   {
+    case 1:
+      printf("\n");
+          // debug end
+          int line = 0;
+      snprintf(lines[line++], MAX_LEN,   "vel=0.2, log=5, acc=2: xl>16, dist=2.5");
+      snprintf(lines[line++], MAX_LEN,   ":xl < 4,dist=0.2");
+      snprintf(lines[line++], MAX_LEN,   "vel=0:time=0.3");
+      snprintf(lines[line++], MAX_LEN,   "tr=0,vel=0.2:turn=-90");
+      snprintf(lines[line++], MAX_LEN,   "edgel=0, white=1: dist=0.5");
+      sendAndActivateSnippet(lines, line);
+      // make sure event 2 is cleared
+      bridge->event->isEventSet(2);
+      //
+      // debug
+      for (int i = 0; i < line; i++)
+      { // print sent lines
+        printf("# line %d: %s\n", i, lines[i]);
+      }
+      // debug end
+      // tell the operator
+      printf("# Sent mission snippet to marker (%d lines)\n", line);
+      //system("espeak \"code snippet to marker.\" -ven+f4 -s130 -a20 2>/dev/null &"); 
+      bridge->send("oled 5 code to marker");
+      // wait for movement to finish
+      state = 999;      
+      break;
+
     case 999:
     default:
       printf("mission 3 ended\n");

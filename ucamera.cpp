@@ -308,7 +308,7 @@ void UCamera::saveImageAsPng(cv::Mat im, const char * filename)
   }
   imTime.getForFilename(date);
   // construct filename
-  snprintf(name, MNL, "/Edge_images/i1%04d_%s_%s.png", imageNumber, usename, date);
+  snprintf(name, MNL, "./Edge_images/i1%04d_%s_%s.png", imageNumber, usename, date);
   // convert to RGB
   //cv::cvtColor(im, im, cv::COLOR_BGR2RGB);
   // make PNG option - compression level 6

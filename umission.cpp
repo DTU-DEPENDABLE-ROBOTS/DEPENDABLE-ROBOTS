@@ -628,6 +628,14 @@ bool UMission::mission1(int & state)
       if (bridge->event->isEventSet(1))
       { // finished first drive
         printf("White line reached!\n");
+        printf("Taking image\n");
+
+        if (not cam->saveImage)
+        {
+          printf("UMission::runMission:: button 1 (red) pressed -> save image\n");
+          cam->saveImage = true;
+        }
+        usleep(100000);
         state = 999;
       }
       break;

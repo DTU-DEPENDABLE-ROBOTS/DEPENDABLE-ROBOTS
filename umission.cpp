@@ -599,7 +599,7 @@ bool UMission::mission1(int & state)
         // make sure event 1 is cleared
         bridge->event->isEventSet(1);
 
-        snprintf(lines[line++], MAX_LEN,   "vel=0.2, log=5, acc=2: dist=0.5");
+        snprintf(lines[line++], MAX_LEN,   "vel=0.2, log=5, acc=2: dist=0.1");
         sendAndActivateSnippet(lines, line);
     
         // debug

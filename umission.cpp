@@ -599,13 +599,7 @@ bool UMission::mission1(int & state)
         // make sure event 1 is cleared
         bridge->event->isEventSet(1);
 
-        snprintf(lines[line++], MAX_LEN,   "vel=0.2, log=5, acc=2, white=1: xl>16, dist=2.5");
-        //snprintf(lines[line++], MAX_LEN,   "vel=0:time=0.1");
-        //snprintf(lines[line++], MAX_LEN,   "vel=-0.1, acc=2: dist=0.1");
-        snprintf(lines[line++], MAX_LEN,   "vel=0:time=0.1");
-        snprintf(lines[line++], MAX_LEN,   "tr=0,vel=0.5:turn=-90");
-        snprintf(lines[line++], MAX_LEN,   "edgel=0, white=1: dist=5");
-        snprintf(lines[line++], MAX_LEN,   "vel=0, event=1:time=0.1");
+        snprintf(lines[line++], MAX_LEN,   "vel=0.2, log=5, acc=2: dist=0.5");
         sendAndActivateSnippet(lines, line);
     
         // debug
@@ -614,6 +608,13 @@ bool UMission::mission1(int & state)
           printf("# line %d: %s\n", i, lines[i]);
         }
         // debug end
+
+        if (not cam->saveImage)
+        {
+          printf("UMission::runMission:: button 1 (red) pressed -> save image\n");
+          cam->saveImage = true;
+        }
+        usleep(1000000);
         
         // tell the operator
         printf("# Sent mission snippet to marker (%d lines)\n", line);
@@ -629,13 +630,7 @@ bool UMission::mission1(int & state)
       { // finished first drive
         printf("White line reached!\n");
         printf("Taking image\n");
-
-        if (not cam->saveImage)
-        {
-          printf("UMission::runMission:: button 1 (red) pressed -> save image\n");
-          cam->saveImage = true;
-        }
-        usleep(100000);
+       
         state = 999;
       }
       break;

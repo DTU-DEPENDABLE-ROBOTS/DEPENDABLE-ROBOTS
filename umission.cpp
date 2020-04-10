@@ -599,7 +599,29 @@ bool UMission::mission1(int & state)
         // make sure event 1 is cleared
         bridge->event->isEventSet(1);
 
-        snprintf(lines[line++], MAX_LEN,   "vel=0.2, log=5, acc=2: dist=0.5");
+        snprintf(lines[line++], MAX_LEN,   "vel=0.5, log=5, acc=2, white=1, edger=0: dist=1.5, ir2 < 0.2");  //start going on the line til the curve
+        //snprintf(lines[line++], MAX_LEN,   "vel=0.5, edgel=0: dist=2.2");  //take the first curve
+        //snprintf(lines[line++], MAX_LEN,   "vel=0.6, edgel=0: dist=1");  //go straight
+        //snprintf(lines[line++], MAX_LEN,   "vel=0.6, edger=0: dist=1");  //go straight, switch side
+        //snprintf(lines[line++], MAX_LEN,   "vel=0.4, edger=0: dist=2");  //take second curve
+        //snprintf(lines[line++], MAX_LEN,   "vel=0.3, edger=0: dist=0.3");  //find middle again
+        //snprintf(lines[line++], MAX_LEN,   "vel=1, edgel=0: dist=3");  //go fast straight
+        //snprintf(lines[line++], MAX_LEN,   "vel=0.4, edgel=0: xl>16, dist=2");  //go slower to catch the junction crossing
+        
+        
+        //snprintf(lines[line++], MAX_LEN,   "vel=0.4, edgel=0: xl>16, dist=5");  //go slower to catch the junction crossing
+        //snprintf(lines[line++], MAX_LEN,   "vel=0:time=0.1");
+        //snprintf(lines[line++], MAX_LEN,   "vel=-0.1, acc=2: dist=0.1");
+        // snprintf(lines[line++], MAX_LEN,   "vel=0:time=1"); //stop before turning
+        // snprintf(lines[line++], MAX_LEN,   "tr=0,vel=0.2:turn=90");
+        //snprintf(lines[line++], MAX_LEN,   "edgel=0, white=1: dist=5");
+        snprintf(lines[line++], MAX_LEN,   "vel=0, event=1:time=0.1");
+        //snprintf(lines[line++], MAX_LEN,   "vel=0.5, edgel=0.2, white=1: xl>16, dist=20");
+        //snprintf(lines[line++], MAX_LEN,   "vel=0:time=0.1");
+        //snprintf(lines[line++], MAX_LEN,   "vel=0.1, acc=2: dist=0.1");
+        //snprintf(lines[line++], MAX_LEN,   "tr=0, vel=0.5:turn=90");
+        //snprintf(lines[line++], MAX_LEN,   "vel=0.2, acc=2: xl>16, dist=1");
+        //snprintf(lines[line++], MAX_LEN,   "vel=0, event=1:time=0.1");
         sendAndActivateSnippet(lines, line);
     
         // debug

@@ -36,6 +36,15 @@
 #include "ubridge.h"
 #include "utime.h"
 
+#include <string>
+#include <vector>
+#include <math.h>
+
+#define FOCALLENGTH	3.04
+#define IMAGEWIDTH	1280
+#define SENSORWIDTH	3.68
+#define PI		3.14159265
+#define BALLDIAMETER 	42
 
 using namespace std; 
 
@@ -215,7 +224,9 @@ void UCamera::run()
 //   printf("# camera thread started\n");
   UTime t;
   float dt = 0;
+  ballDetectionResult = {};
   saveImage = false;
+  detectBall = false;
   doArUcoAnalysis = false;
   doArUcoLoopTest = false;
   int arucoLoop = 100;
@@ -246,6 +257,13 @@ void UCamera::run()
           printf("Image saved\n");
           //
           saveImage = false;
+        }
+        if (detectBall)
+        { 
+          saveImageAsPng(im);
+	  ballDetectionResult = processBallDetection(im);
+
+          detectBall = false;
         }
         if (doArUcoAnalysis)
         { // do ArUco detection
@@ -308,7 +326,7 @@ void UCamera::saveImageAsPng(cv::Mat im, const char * filename)
   }
   imTime.getForFilename(date);
   // construct filename
-  snprintf(name, MNL, "./Edge_images/i1%04d_%s_%s.png", imageNumber, usename, date);
+  snprintf(name, MNL, "%02d_%s.png", imageNumber, date);
   // convert to RGB
   //cv::cvtColor(im, im, cv::COLOR_BGR2RGB);
   // make PNG option - compression level 6
@@ -324,6 +342,126 @@ void UCamera::saveImageAsPng(cv::Mat im, const char * filename)
     fprintf(logImg, "%ld.%03ld %.3f %d 0 0 '%s'\n", imTime.getSec(), imTime.getMilisec(), bridge->info->regbotTime, imageNumber, name);
     fflush(logImg);
   }
+}
+
+//////////////////////////////////////////////////
+
+/**
+ * Save image as png file and processes it for object detection
+ * \param im is the 8-bit RGB image to save
+ * \param filename is an optional image filename, if not used, then image is saved as image_[timestamp].png
+ * */
+float *UCamera::processBallDetection(cv::Mat im, const char * filename)
+{
+  const int MNL = 120;
+  char date[25];
+  char name[MNL];
+  const char * usename = filename;
+  saveImage = false;
+  // use date in filename
+  // get date as string
+  if (usename == NULL)
+  {
+    usename = "ucamera";
+  }
+  imTime.getForFilename(date);
+  // construct filename
+  snprintf(name, MNL, "i1%04d_%s_%s.png", imageNumber, usename, date);
+  // convert to RGB
+  //cv::cvtColor(im, im, cv::COLOR_BGR2RGB);
+  // make PNG option - compression level 6
+  vector<int> compression_params;
+  compression_params.push_back(cv::IMWRITE_PNG_COMPRESSION);
+  compression_params.push_back(6);
+  // save image
+  cv::imwrite(name, im, compression_params);
+  // debug message
+  printf("saved image to: %s\n", name);
+  if (logImg != NULL)
+  { // save to image logfile
+    fprintf(logImg, "%ld.%03ld %.3f %d 0 0 '%s'\n", imTime.getSec(), imTime.getMilisec(), bridge->info->regbotTime, imageNumber, name);
+    fflush(logImg);
+  }
+
+  ////////////////////////OBJECT DETECTION PART///////////////////
+
+  float xd = 0;
+  float d = 0;
+  float alfa = 0;
+  float vector[3] = {};
+  float res[2] = {};
+
+  
+  cv::Mat bgr_image = im;
+
+  cv::Mat orig_image = bgr_image.clone();
+  cv::medianBlur(bgr_image, bgr_image, 11); // 7,11,15 kernel works 
+
+  // Convert input image to HSV
+  cv::Mat hsv_image;
+  cv::cvtColor(bgr_image, hsv_image, cv::COLOR_BGR2HSV); 
+
+  // Threshold the HSV image, keep only the red pixels
+  cv::Mat lower_red_hue_range;
+  cv::Mat upper_red_hue_range;
+  cv::Mat finmask;
+  cv::inRange(hsv_image, cv::Scalar(0, 100, 77), cv::Scalar(220, 250, 255), lower_red_hue_range); // 0,100,100 10,255,255
+  cv::inRange(hsv_image, cv::Scalar(160, 100, 100), cv::Scalar(210, 255, 255), upper_red_hue_range);
+
+  finmask = lower_red_hue_range + upper_red_hue_range;
+
+  cv::Mat red_hue_image;
+  cv::addWeighted(lower_red_hue_range, 1.0, upper_red_hue_range, 1.0, 0.0, red_hue_image);
+
+  // Morphology 
+  cv::Mat element = cv::getStructuringElement(cv::MORPH_ELLIPSE,cv::Size(15,15));
+  cv::morphologyEx(red_hue_image,red_hue_image,cv::MORPH_OPEN,element);	
+
+  // Filter size 11,11 is working
+  cv::GaussianBlur(red_hue_image, red_hue_image, cv::Size(11, 11), 2, 2);
+
+  // Use the Hough transform to detect circles in the combined threshold image
+  std::vector<cv::Vec3f> circles;
+  cv::HoughCircles(red_hue_image, circles, CV_HOUGH_GRADIENT, 1, red_hue_image.rows/8, 100, 20, 0, 0); // 8,100,20,0,0 // 4 and 16 not working and if we change last two parameters then its not working  
+
+  // Loop over all detected circles and outline them on the original image
+  for (auto vec : circles)
+  {
+	vector[0] = vec[0];
+	vector[1] = vec[1];
+	vector[2] = vec[2];
+  }
+	
+  d = (FOCALLENGTH * BALLDIAMETER)/(vector[2]*2*(SENSORWIDTH/IMAGEWIDTH));
+
+  if (vector[0]>IMAGEWIDTH/2)
+  {
+	xd = (vector[0]-IMAGEWIDTH/2)*SENSORWIDTH/IMAGEWIDTH;
+	alfa = (-1) * (atan (xd/FOCALLENGTH) * 180 / PI);		
+  } 
+  else {
+	xd = (IMAGEWIDTH/2-vector[0])*SENSORWIDTH/IMAGEWIDTH;
+	alfa = (atan (xd/FOCALLENGTH) * 180 / PI);	
+  }
+	
+  if(circles.size() == 0) std::exit(-1);
+  for(size_t current_circle = 0; current_circle < circles.size(); ++current_circle) 
+  {
+	cv::Point center(std::round(circles[current_circle][0]), std::round(circles[current_circle][1]));
+	int radius = std::round(circles[current_circle][2]);
+	cv::circle(orig_image, center, radius, cv::Scalar(0, 255, 0), 5);
+  }
+
+  res[0] = d;
+  res[1] = alfa;
+
+  printf("Balldetection distance is: %f\n", res[0]);
+  printf("Balldetection angle is: %f\n", res[1]);
+
+  saveImageAsPng(finmask);
+  //saveImageAsPng(red_hue_image);
+	
+  return res;
 }
 
 

@@ -54,6 +54,10 @@ class UCamera : public URun
 public:
   // flag to save an image to disk
   bool saveImage = false;
+  // flag to perform object detection
+  bool detectBall = false;
+  // result of object detection
+  float *ballDetectionResult = new float[2];
   // flad to do ArUcoAnalysis
   bool doArUcoAnalysis = false;
   /// do loop-test (aruco log)
@@ -137,6 +141,8 @@ public:
   /**
    * Save image to flashdisk */
   void saveImageAsPng(cv::Mat im, const char * filename = NULL);
+  /* Perform object detection */
+  float *processBallDetection(cv::Mat im, const char * filename = NULL);
   
 protected:
   /**

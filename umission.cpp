@@ -601,7 +601,8 @@ bool UMission::mission1(int & state)
         bridge->event->isEventSet(1);
         bridge->event->isEventSet(2);
         snprintf(lines[line++], MAX_LEN,   "vel=0, acc=0, log=5, white=1, edger=0:time=3");
-        snprintf(lines[line++], MAX_LEN,   "vel=0.1, acc=1, white=1, edger=0: xl>16, ir2<0.1");
+        // snprintf(lines[line++], MAX_LEN,   "vel=0.1, acc=1, white=1, edger=0: xl>16, ir2<0.1");
+        snprintf(lines[line++], MAX_LEN,   "vel=0.1, acc=1, white=1, edger=0: dist=1.4, ir2<0.1");
         snprintf(lines[line++], MAX_LEN,   "goto=1:last=8");
         snprintf(lines[line++], MAX_LEN,   "vel=0,event=2,goto=2:time=0.1");
         snprintf(lines[line++], MAX_LEN,   "label=1,event=1:time=0.1");
@@ -638,27 +639,28 @@ bool UMission::mission1(int & state)
       { printf("Object detected, event 2!\n");
         int line = 0;
         bridge->event->isEventSet(1);
-        snprintf(lines[line++], MAX_LEN,   "vel=0:time=0.2"); 
-        snprintf(lines[line++], MAX_LEN,   "tr=0,vel=0.1,acc=1:turn=90");
-        snprintf(lines[line++], MAX_LEN,   "vel=0:time=0.2");
-        snprintf(lines[line++], MAX_LEN,   "vel=0.1: dist=0.5, ir1>0.5");
-        snprintf(lines[line++], MAX_LEN,   "vel=0.1: dist=0.1");
-        snprintf(lines[line++], MAX_LEN,   "vel=0:time=0.2");
+        snprintf(lines[line++], MAX_LEN,   "vel=0:time=2");
+        snprintf(lines[line++], MAX_LEN,   "tr=0,vel=0.2,acc=1:turn=90");
+        snprintf(lines[line++], MAX_LEN,   "vel=0,event=5:turn=90");/*
+        snprintf(lines[line++], MAX_LEN,   "vel=0:time=2");
+        snprintf(lines[line++], MAX_LEN,   "vel=0.1:dist=0.5, ir1>0.5");
+        snprintf(lines[line++], MAX_LEN,   "vel=0.1:dist=0.1");
+        snprintf(lines[line++], MAX_LEN,   "vel=0:time=2");
 
-        snprintf(lines[line++], MAX_LEN,   "tr=0.05,vel=0.1:turn=-90");
-        snprintf(lines[line++], MAX_LEN,   "vel=0:time=0.2");
+        snprintf(lines[line++], MAX_LEN,   "tr=0,vel=0.2:turn=-90");
+        snprintf(lines[line++], MAX_LEN,   "vel=0:time=0.5");
         snprintf(lines[line++], MAX_LEN,   "vel=0.1: dist=0.5, ir1>0.5");
         snprintf(lines[line++], MAX_LEN,   "vel=0.1: dist=0.15");
-        snprintf(lines[line++], MAX_LEN,   "vel=0:time=0.2");
+        snprintf(lines[line++], MAX_LEN,   "vel=0:time=0.5");
 
-        snprintf(lines[line++], MAX_LEN,   "tr=0.05,vel=0.1,acc=1:turn=-90");
+        snprintf(lines[line++], MAX_LEN,   "tr=0,vel=0.2,acc=1:turn=-90");
         snprintf(lines[line++], MAX_LEN,   "vel=0:time=0.2");
         snprintf(lines[line++], MAX_LEN,   "vel=0.1: xl>16, dist=0.5");
         snprintf(lines[line++], MAX_LEN,   "vel=0:time=0.2");
 
-        snprintf(lines[line++], MAX_LEN,   "tr=0,vel=0.1,acc=1:turn=90");
-        snprintf(lines[line++], MAX_LEN,   "vel=0,event=1:time=0.1");
-        sendAndActivateSnippet(lines, line);
+        snprintf(lines[line++], MAX_LEN,   "tr=0,vel=0.2,acc=1:turn=90");
+        snprintf(lines[line++], MAX_LEN,   "vel=0,event=1:time=0.1");*/
+        sendAndActivateSnippet(lines, line);    
         state = 11;
       }
 

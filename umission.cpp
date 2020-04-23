@@ -606,16 +606,7 @@ bool UMission::mission1(int & state)
         snprintf(lines[line++], MAX_LEN,   "label=1,event=1:time=0.1");
         snprintf(lines[line++], MAX_LEN,   "label=2");
         sendAndActivateSnippet(lines, line);
-    
-        // debug
-        for (int i = 0; i < line; i++)
-        { // print sent lines
-          printf("# line %d: %s\n", i, lines[i]);
-        }
-        // debug end
 
-        // tell the operator
-        printf("# Sent mission snippet to marker (%d lines)\n", line);
         state = 1;
       }
       break;
@@ -639,6 +630,7 @@ bool UMission::mission1(int & state)
         snprintf(lines[line++], MAX_LEN,   "vel=0.2, tr=0, acc=2:turn=5");
         snprintf(lines[line++], MAX_LEN,   "vel=0, event=3: time=1");
         sendAndActivateSnippet(lines, line);    
+
         state = 2;
       }
 
@@ -647,6 +639,7 @@ bool UMission::mission1(int & state)
         int line = 0;
         snprintf(lines[line++], MAX_LEN,   "vel=0,event=1:time=0.1");
         sendAndActivateSnippet(lines, line);
+        
         state = 10;
       }
       break;

@@ -596,13 +596,11 @@ bool UMission::mission1(int & state)
         printf("\n");
         int line = 0;
 
-        // make sure event 2 is cleared
-
+        // clearing both events
         bridge->event->isEventSet(1);
         bridge->event->isEventSet(2);
-        snprintf(lines[line++], MAX_LEN,   "vel=0, acc=0, log=5, white=1, edger=0:time=3");
-        // snprintf(lines[line++], MAX_LEN,   "vel=0.1, acc=1, white=1, edger=0: xl>16, ir2<0.1");
-        snprintf(lines[line++], MAX_LEN,   "vel=0.1, acc=1, white=1, edger=0: dist=1.4, ir2<0.1");
+        snprintf(lines[line++], MAX_LEN,   "vel=0,acc=0, log=5, white=1, edger=0:time=2");
+        snprintf(lines[line++], MAX_LEN,   "vel=0.2, acc=2, white=1, edger=0: xl>16, ir2<0.1");
         snprintf(lines[line++], MAX_LEN,   "goto=1:last=8");
         snprintf(lines[line++], MAX_LEN,   "vel=0,event=2,goto=2:time=0.1");
         snprintf(lines[line++], MAX_LEN,   "label=1,event=1:time=0.1");
@@ -615,20 +613,9 @@ bool UMission::mission1(int & state)
           printf("# line %d: %s\n", i, lines[i]);
         }
         // debug end
-        
-        /*if (not cam->saveImage)
-        {
-          printf("UMission::runMission:: button 1 (red) pressed -> save image\n");
-          cam->saveImage = true;
-        }
-        usleep(1000000);*/
 
         // tell the operator
         printf("# Sent mission snippet to marker (%d lines)\n", line);
-        //system("espeak \"code snippet to marker.\" -ven+f4 -s130 -a20 2>/dev/null &"); 
-        bridge->send("oled 5 code to marker");
-        // wait for movement to finish
-        // wait for event 1 (send when finished driving first part)
         state = 1;
       }
       break;
@@ -636,45 +623,61 @@ bool UMission::mission1(int & state)
 
     case 1:
       if (bridge->event->isEventSet(2))
-      { printf("Object detected, event 2!\n");
+      { printf("Object detected, starting avoidance manouver!\n");
         int line = 0;
-        bridge->event->isEventSet(1);
-        snprintf(lines[line++], MAX_LEN,   "vel=0:time=2");
-        snprintf(lines[line++], MAX_LEN,   "tr=0,vel=0.2,acc=1:turn=90");
-        snprintf(lines[line++], MAX_LEN,   "vel=0,event=5:turn=90");/*
-        snprintf(lines[line++], MAX_LEN,   "vel=0:time=2");
-        snprintf(lines[line++], MAX_LEN,   "vel=0.1:dist=0.5, ir1>0.5");
-        snprintf(lines[line++], MAX_LEN,   "vel=0.1:dist=0.1");
-        snprintf(lines[line++], MAX_LEN,   "vel=0:time=2");
+        bridge->event->isEventSet(3);
+        snprintf(lines[line++], MAX_LEN,   "vel=0:time=0.1");
+        snprintf(lines[line++], MAX_LEN,   "vel=0.2, tr=0, acc=2:turn=90");
+        snprintf(lines[line++], MAX_LEN,   "vel=0.2, tr=0, acc=2:turn=-5");
+        snprintf(lines[line++], MAX_LEN,   "vel=0: time=0.1");
 
-        snprintf(lines[line++], MAX_LEN,   "tr=0,vel=0.2:turn=-90");
-        snprintf(lines[line++], MAX_LEN,   "vel=0:time=0.5");
-        snprintf(lines[line++], MAX_LEN,   "vel=0.1: dist=0.5, ir1>0.5");
-        snprintf(lines[line++], MAX_LEN,   "vel=0.1: dist=0.15");
-        snprintf(lines[line++], MAX_LEN,   "vel=0:time=0.5");
+        snprintf(lines[line++], MAX_LEN,   "vel=-0.2:ir1<0.3");
+        snprintf(lines[line++], MAX_LEN,   "vel=0.2:ir1>0.5");
+        snprintf(lines[line++], MAX_LEN,   "vel=0.2:dist=0.3");
 
-        snprintf(lines[line++], MAX_LEN,   "tr=0,vel=0.2,acc=1:turn=-90");
-        snprintf(lines[line++], MAX_LEN,   "vel=0:time=0.2");
-        snprintf(lines[line++], MAX_LEN,   "vel=0.1: xl>16, dist=0.5");
-        snprintf(lines[line++], MAX_LEN,   "vel=0:time=0.2");
-
-        snprintf(lines[line++], MAX_LEN,   "tr=0,vel=0.2,acc=1:turn=90");
-        snprintf(lines[line++], MAX_LEN,   "vel=0,event=1:time=0.1");*/
+        snprintf(lines[line++], MAX_LEN,   "vel=0.2, tr=0, acc=2:turn=-90");
+        snprintf(lines[line++], MAX_LEN,   "vel=0.2, tr=0, acc=2:turn=5");
+        snprintf(lines[line++], MAX_LEN,   "vel=0, event=3: time=1");
         sendAndActivateSnippet(lines, line);    
-        state = 11;
+        state = 2;
       }
 
       else if (bridge->event->isEventSet(1))
-      { printf("End reached, event 1!\n");     
+      { printf("End reached without obstacle!\n");     
         int line = 0;
         snprintf(lines[line++], MAX_LEN,   "vel=0,event=1:time=0.1");
         sendAndActivateSnippet(lines, line);
-        state = 11;
+        state = 10;
       }
       break;
-    
 
-    case 11:
+    case 2:
+      if (bridge->event->isEventSet(3))
+      { printf("Avoidance manouver half way!\n");
+        int line = 0;
+        bridge->event->isEventSet(1);
+        snprintf(lines[line++], MAX_LEN,   "vel=0.2:ir1<0.5");
+        snprintf(lines[line++], MAX_LEN,   "vel=0.2:ir1>0.5");
+        snprintf(lines[line++], MAX_LEN,   "vel=0.2:dist=0.3");
+
+        snprintf(lines[line++], MAX_LEN,   "vel=0.2, tr=0, acc=2:turn=-90");
+        snprintf(lines[line++], MAX_LEN,   "vel=0.2, tr=0, acc=2:turn=5");
+        snprintf(lines[line++], MAX_LEN,   "vel=0: time=1");
+
+        snprintf(lines[line++], MAX_LEN,   "vel=0.2:lv>15");
+        snprintf(lines[line++], MAX_LEN,   "vel=0: time=1");
+
+        snprintf(lines[line++], MAX_LEN,   "vel=0.2, tr=0, acc=2:turn=90");
+        snprintf(lines[line++], MAX_LEN,   "vel=0.2, tr=0, acc=2:turn=-5");
+        snprintf(lines[line++], MAX_LEN,   "vel=0: time=1");
+        snprintf(lines[line++], MAX_LEN,   "vel=0.2, white=1, edger=0:xl>18");
+        snprintf(lines[line++], MAX_LEN,   "vel=0,event=1:time=0.1");
+        sendAndActivateSnippet(lines, line);    
+        state = 10;
+      }
+      break;    
+
+    case 10:
       if (bridge->event->isEventSet(1))
       { printf("\n");
         int line = 0;
@@ -688,7 +691,6 @@ bool UMission::mission1(int & state)
     case 999:
     default:
       printf("mission 1 ended\n");
-      bridge->send("oled 5 mission 3 ended.");
       finished = true;
       break;
   }

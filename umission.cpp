@@ -637,10 +637,10 @@ bool UMission::mission1(int & state)
       {
         int line = 0;
         bridge->event->isEventSet(1);
-        float dist = ((cam->distanceToObject)/1000) - 0.3;
+        float dist = ((cam->distanceToObject)/1000) - 0.2;
         float angle = cam->angleToObject;
 
-        snprintf(lines[line++], MAX_LEN,   "vel=0.2,tr=0.0 :turn=%.1f", angle);	
+        snprintf(lines[line++], MAX_LEN,   "vel=0.2,acc=2,tr=0.0:turn=%.1f", angle);	
         snprintf(lines[line++], MAX_LEN, "vel=0.2,acc=2 :dist=%.3f", dist);
         snprintf(lines[line++], MAX_LEN,   "vel=0, event=1:time=0.1");
         sendAndActivateSnippet(lines, line);
@@ -650,6 +650,7 @@ bool UMission::mission1(int & state)
       break;
 
     case 4: 
+      if (bridge->event->isEventSet(1))
       {
         int line = 0;
         bridge->event->isEventSet(1);
@@ -657,8 +658,10 @@ bool UMission::mission1(int & state)
         float angle = cam->angleToObject;
 
         snprintf(lines[line++], MAX_LEN,"servo=3,pservo=-900:time=4");
-	snprintf(lines[line++], MAX_LEN,   "vel=-0.2,tr=0.0 :turn=%.1f", angle);	
+	snprintf(lines[line++], MAX_LEN,"servo=3,pservo=0:time=2");
+	snprintf(lines[line++], MAX_LEN,   "vel=0.2,acc=2,tr=0.0 :turn=%.1f", (-1.0)*angle);	
         snprintf(lines[line++], MAX_LEN, "vel=-0.2,acc=2 :dist=%.3f", dist);
+	snprintf(lines[line++], MAX_LEN,   "vel=0, event=1:time=0.1");
         sendAndActivateSnippet(lines, line);
       
         state = 11;

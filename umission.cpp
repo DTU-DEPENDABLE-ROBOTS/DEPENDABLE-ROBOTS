@@ -360,16 +360,16 @@ bool UMission::mission1(int & state)
         int line = 0;
         bridge->event->isEventSet(3);
         snprintf(lines[line++], MAX_LEN,   "vel=0:time=0.1");
-        snprintf(lines[line++], MAX_LEN,   "vel=0.2, tr=0, acc=2:turn=90");
-        snprintf(lines[line++], MAX_LEN,   "vel=0.2, tr=0, acc=2:turn=-5");
+        snprintf(lines[line++], MAX_LEN,   "vel=0.2, tr=0, acc=2:turn=-90");
+        snprintf(lines[line++], MAX_LEN,   "vel=0.2, tr=0, acc=2:turn=5");
         snprintf(lines[line++], MAX_LEN,   "vel=0: time=0.1");
 
         snprintf(lines[line++], MAX_LEN,   "vel=-0.2:ir1<0.3");
         snprintf(lines[line++], MAX_LEN,   "vel=0.2:ir1>0.5");
         snprintf(lines[line++], MAX_LEN,   "vel=0.2:dist=0.3");
 
-        snprintf(lines[line++], MAX_LEN,   "vel=0.2, tr=0, acc=2:turn=-90");
-        snprintf(lines[line++], MAX_LEN,   "vel=0.2, tr=0, acc=2:turn=5");
+        snprintf(lines[line++], MAX_LEN,   "vel=0.2, tr=0, acc=2:turn=90");
+        snprintf(lines[line++], MAX_LEN,   "vel=0.2, tr=0, acc=2:turn=-5");
         snprintf(lines[line++], MAX_LEN,   "vel=0, event=3: time=1");
         sendAndActivateSnippet(lines, line);    
 
@@ -391,19 +391,19 @@ bool UMission::mission1(int & state)
       { printf("Avoidance manouver half way!\n");
         int line = 0;
         bridge->event->isEventSet(1);
-        snprintf(lines[line++], MAX_LEN,   "vel=0.2:ir1<0.5");
-        snprintf(lines[line++], MAX_LEN,   "vel=0.2:ir1>0.5");
+        snprintf(lines[line++], MAX_LEN,   "vel=0.2:ir1<0.25");
+        snprintf(lines[line++], MAX_LEN,   "vel=0.2:ir1>0.25");
         snprintf(lines[line++], MAX_LEN,   "vel=0.2:dist=0.3");
 
-        snprintf(lines[line++], MAX_LEN,   "vel=0.2, tr=0, acc=2:turn=-90");
-        snprintf(lines[line++], MAX_LEN,   "vel=0.2, tr=0, acc=2:turn=5");
+        snprintf(lines[line++], MAX_LEN,   "vel=0.2, tr=0, acc=2:turn=90");
+        snprintf(lines[line++], MAX_LEN,   "vel=0.2, tr=0, acc=2:turn=-5");
         snprintf(lines[line++], MAX_LEN,   "vel=0: time=1");
 
         snprintf(lines[line++], MAX_LEN,   "vel=0.2:lv>15");
         snprintf(lines[line++], MAX_LEN,   "vel=0: time=1");
 
-        snprintf(lines[line++], MAX_LEN,   "vel=0.2, tr=0, acc=2:turn=90");
-        snprintf(lines[line++], MAX_LEN,   "vel=0.2, tr=0, acc=2:turn=-5");
+        snprintf(lines[line++], MAX_LEN,   "vel=0.2, tr=0, acc=2:turn=-90");
+        snprintf(lines[line++], MAX_LEN,   "vel=0.2, tr=0, acc=2:turn=5");
         snprintf(lines[line++], MAX_LEN,   "vel=0: time=1");
         snprintf(lines[line++], MAX_LEN,   "vel=0.2, white=1, edger=0:xl>18");
         snprintf(lines[line++], MAX_LEN,   "vel=0,event=1:time=0.1");

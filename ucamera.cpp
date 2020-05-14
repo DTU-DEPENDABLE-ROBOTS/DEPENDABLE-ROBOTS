@@ -224,11 +224,12 @@ void UCamera::run()
 //   printf("# camera thread started\n");
   UTime t;
   float dt = 0;
-  ballDetectionResult = {};
   saveImage = false;
-  detectBall = false;
   doArUcoAnalysis = false;
+  doObjectDetection = false;
   doArUcoLoopTest = false;
+  distanceToObject = 0.0;
+  angleToObject = 0.0;
   int arucoLoop = 100;
   while (not th1stop)
   {
@@ -258,12 +259,10 @@ void UCamera::run()
           //
           saveImage = false;
         }
-        if (detectBall)
+        if (doObjectDetection)
         { 
           saveImageAsPng(im);
-	  ballDetectionResult = processBallDetection(im);
-
-          detectBall = false;
+	  // processBallDetection(im);
         }
         if (doArUcoAnalysis)
         { // do ArUco detection
@@ -342,6 +341,7 @@ void UCamera::saveImageAsPng(cv::Mat im, const char * filename)
     fprintf(logImg, "%ld.%03ld %.3f %d 0 0 '%s'\n", imTime.getSec(), imTime.getMilisec(), bridge->info->regbotTime, imageNumber, name);
     fflush(logImg);
   }
+  doObjectDetection = false;
 }
 
 //////////////////////////////////////////////////
@@ -351,7 +351,7 @@ void UCamera::saveImageAsPng(cv::Mat im, const char * filename)
  * \param im is the 8-bit RGB image to save
  * \param filename is an optional image filename, if not used, then image is saved as image_[timestamp].png
  * */
-float *UCamera::processBallDetection(cv::Mat im, const char * filename)
+void UCamera::processBallDetection(cv::Mat im, const char * filename)
 {
   const int MNL = 120;
   char date[25];
@@ -382,14 +382,13 @@ float *UCamera::processBallDetection(cv::Mat im, const char * filename)
     fprintf(logImg, "%ld.%03ld %.3f %d 0 0 '%s'\n", imTime.getSec(), imTime.getMilisec(), bridge->info->regbotTime, imageNumber, name);
     fflush(logImg);
   }
-
+  
   ////////////////////////OBJECT DETECTION PART///////////////////
 
   float xd = 0;
   float d = 0;
   float alfa = 0;
   float vector[3] = {};
-  float res[2] = {};
 
   
   cv::Mat bgr_image = im;
@@ -434,6 +433,11 @@ float *UCamera::processBallDetection(cv::Mat im, const char * filename)
 	
   d = (FOCALLENGTH * BALLDIAMETER)/(vector[2]*2*(SENSORWIDTH/IMAGEWIDTH));
 
+  if (vector[2] < 0 or vector[2] > 960)
+  {
+    d = 0.0;
+  }
+
   if (vector[0]>IMAGEWIDTH/2)
   {
 	xd = (vector[0]-IMAGEWIDTH/2)*SENSORWIDTH/IMAGEWIDTH;
@@ -452,16 +456,14 @@ float *UCamera::processBallDetection(cv::Mat im, const char * filename)
 	cv::circle(orig_image, center, radius, cv::Scalar(0, 255, 0), 5);
   }
 
-  res[0] = d;
-  res[1] = alfa;
-
-  printf("Balldetection distance is: %f\n", res[0]);
-  printf("Balldetection angle is: %f\n", res[1]);
+  distanceToObject = d;
+  angleToObject = alfa;
+  printf("Balldetection distance is: %f\n", distanceToObject);
+  printf("Balldetection angle is: %f\n", angleToObject);
 
   saveImageAsPng(finmask);
-  //saveImageAsPng(red_hue_image);
 	
-  return res;
+  doObjectDetection = false;
 }
 
 

@@ -226,7 +226,7 @@ void UCamera::run()
   float dt = 0;
   saveImage = false;
   doArUcoAnalysis = false;
-  doObjectDetection = false;
+  // doObjectDetection = false;
   doArUcoLoopTest = false;
   distanceToObject = 0.0;
   angleToObject = 0.0;
@@ -261,8 +261,8 @@ void UCamera::run()
         }
         if (doObjectDetection)
         { 
-          saveImageAsPng(im);
-	  // processBallDetection(im);
+          //saveImageAsPng(im);
+	  processBallDetection(im);
         }
         if (doArUcoAnalysis)
         { // do ArUco detection
@@ -325,7 +325,7 @@ void UCamera::saveImageAsPng(cv::Mat im, const char * filename)
   }
   imTime.getForFilename(date);
   // construct filename
-  snprintf(name, MNL, "%02d_%s.png", imageNumber, date);
+  snprintf(name, MNL, "i1%04d_%s_%s.png", imageNumber, usename, date);
   // convert to RGB
   //cv::cvtColor(im, im, cv::COLOR_BGR2RGB);
   // make PNG option - compression level 6
@@ -341,7 +341,6 @@ void UCamera::saveImageAsPng(cv::Mat im, const char * filename)
     fprintf(logImg, "%ld.%03ld %.3f %d 0 0 '%s'\n", imTime.getSec(), imTime.getMilisec(), bridge->info->regbotTime, imageNumber, name);
     fflush(logImg);
   }
-  doObjectDetection = false;
 }
 
 //////////////////////////////////////////////////
@@ -387,6 +386,8 @@ void UCamera::processBallDetection(cv::Mat im, const char * filename)
 
   float xd = 0;
   float d = 0;
+  float true_dist = 0.0;
+  float true_alfa = 0.0;
   float alfa = 0;
   float vector[3] = {};
 
@@ -441,11 +442,20 @@ void UCamera::processBallDetection(cv::Mat im, const char * filename)
   if (vector[0]>IMAGEWIDTH/2)
   {
 	xd = (vector[0]-IMAGEWIDTH/2)*SENSORWIDTH/IMAGEWIDTH;
-	alfa = (-1) * (atan (xd/FOCALLENGTH) * 180 / PI);		
+	alfa = (atan (xd/FOCALLENGTH) * 180 / PI); // We need to compensate for the position of the camera
+	// The camera is 200 mm from the middle point of the robot	
+	true_dist = sqrt(pow(200,2)+pow(d,2)-cos((180-alfa)*PI/180)*2*200*d);	
+	printf("The value of true_dist: %.3f", true_dist);
+	true_alfa = (-1)*(asin(sin((180-alfa)*PI/180)*(d/true_dist)))*180/PI;
+	printf("The value of true_alfa: %.3f", true_alfa);
   } 
   else {
 	xd = (IMAGEWIDTH/2-vector[0])*SENSORWIDTH/IMAGEWIDTH;
-	alfa = (atan (xd/FOCALLENGTH) * 180 / PI);	
+	alfa = (atan (xd/FOCALLENGTH) * 180 / PI);
+	true_dist = sqrt(pow(200,2)+pow(d,2)-cos((180-alfa)*PI/180)*2*200*d);
+	printf("The value of true_dist: %.3f", true_dist);	
+	true_alfa = (asin(sin((180-alfa)*PI/180)*(d/true_dist)))*180/PI;
+	printf("The value of true_alfa: %.3f", true_alfa);
   }
 	
   if(circles.size() == 0) std::exit(-1);
@@ -455,9 +465,16 @@ void UCamera::processBallDetection(cv::Mat im, const char * filename)
 	int radius = std::round(circles[current_circle][2]);
 	cv::circle(orig_image, center, radius, cv::Scalar(0, 255, 0), 5);
   }
-
-  distanceToObject = d;
-  angleToObject = alfa;
+  if (isnan(true_dist)!=0 && isnan(true_alfa)!=0 && isinf(true_dist)!=0 && isinf(true_alfa)!=0)
+  {
+    distanceToObject = 0.0;
+    angleToObject = 0.0;
+  }
+  else
+  {
+    distanceToObject = true_dist;
+    angleToObject = true_alfa;
+  }
   printf("Balldetection distance is: %f\n", distanceToObject);
   printf("Balldetection angle is: %f\n", angleToObject);
 

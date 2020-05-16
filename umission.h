@@ -41,6 +41,14 @@ class UMission : public URun
 public:
   /// flag to finish all (pending) missions and RC
   bool finished = false;
+  float speed = 0.0;
+  float ref_dist = 0.2;
+  float ir_dist = 0.0;
+  float error = 0.0;
+  int cross_count = 0;
+  int distanceCount = 1;
+  float dist = 0.0;
+  float angle = 0.0;
 private:
   /**
    * Pointer to communication and data part of this mission application */

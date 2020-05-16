@@ -11,7 +11,6 @@
 
 #include <sys/time.h>
 #include <cstdlib>
-
 #include "umission.h"
 #include "utime.h"
 #include "ulibpose2pose.h"
@@ -590,24 +589,22 @@ void UMission::runMission()
 bool UMission::mission1(int & state)
 {
   bool finished = false;
-  float dist = 0.0;
-  float angle = 0.0;
-  int distanceCount = 0;
   switch (state)
   {
     case 0:
       {   
         int line = 0;
-        bridge->event->isEventSet(1);
+        bridge->event->isEventSet(distanceCount);
 
         snprintf(lines[line++], MAX_LEN, "vel=0, acc=0, log=5, white=1, edgel=0: time=1");
+	snprintf(lines[line++], MAX_LEN, "servo=3, pservo=900: time=2");
         snprintf(lines[line++], MAX_LEN, "vel=0.2, acc=2, white=1, edgel=0: xl>16");
-        snprintf(lines[line++], MAX_LEN, "vel=0.0, acc=2: time=0.5");
-        snprintf(lines[line++], MAX_LEN, "vel=0.2, acc=2, tr=0.0: turn=-110");
+	snprintf(lines[line++], MAX_LEN, "vel=0.2, acc=2, white=1, edgel=0: dist=0.5");
+        snprintf(lines[line++], MAX_LEN, "vel=0.0, acc=2: time=0.2");
+        snprintf(lines[line++], MAX_LEN, "vel=0.2, acc=2, tr=0.0: turn=-100");
         snprintf(lines[line++], MAX_LEN, "vel=0.2, acc=2, tr=0.0: turn=5");
-        snprintf(lines[line++], MAX_LEN, "vel=0, event=1: time=0.1");
-	snprintf(lines[line++], MAX_LEN, "vel=-0.2, acc=2: dist=0.1");
-	snprintf(lines[line++], MAX_LEN, "vel=0.0, event=1: time=0.1");
+	snprintf(lines[line++], MAX_LEN, "vel=-0.2, acc=2: lv>16");
+	snprintf(lines[line++], MAX_LEN, "vel=0.0, event=%d: time=1.0", distanceCount);
         sendAndActivateSnippet(lines, line);
 
         state = 10;
@@ -615,11 +612,12 @@ bool UMission::mission1(int & state)
       break;
    	 
     case 10:
-      if (bridge->event->isEventSet(1))
+      //if (fabsf(bridge->motor->getVelocity()) < 0.001)
+      if (bridge->event->isEventSet(distanceCount))
       {
-	bridge->event->isEventSet(1); 
         cam->doObjectDetection = true;
 
+	printf("State 10\n");
 	state = 11;
       }
       break;
@@ -627,15 +625,14 @@ bool UMission::mission1(int & state)
     case 11:
       if (not cam->doObjectDetection)
       { 
-	printf("Inside of outer if loop");
         if (cam->distanceToObject > 0.0 and cam->distanceToObject < 1100.0)
         {
-	  //printf("The measured distance is: %.3f",cam->distanceToObject);
-          printf("Inside of inner if loop");
+	  printf("State 11, object detected!!!\n");
 	  state = 30;
         }
         else
         {
+	  printf("State 11, no object detected\n");
           state = 20;
         }
       }
@@ -646,39 +643,29 @@ bool UMission::mission1(int & state)
       break;
 
     case 20: 
-      { 
+      {
         int line = 0;
-	bridge->event->isEventSet(2);
-        snprintf(lines[line++], MAX_LEN, "vel=0.2, acc=2, tr=0.0: turn=90, time=2");
-	snprintf(lines[line++], MAX_LEN, "vel=0.2, acc=2, tr=0.0: turn=-5, time=2");
+	bridge->event->isEventSet(distanceCount);
+        snprintf(lines[line++], MAX_LEN, "vel=0.2, acc=2, tr=0.0: turn=90");
+	snprintf(lines[line++], MAX_LEN, "vel=0.2, acc=2, tr=0.0: turn=-5");
 	snprintf(lines[line++], MAX_LEN, "vel=0.2, acc=2, white=1, edgel=0: dist=0.3");
         snprintf(lines[line++], MAX_LEN, "vel=0.0: time=0.1");
-	snprintf(lines[line++], MAX_LEN, "vel=0.2, acc=2, tr=0.0: turn=-90, time=2");
-	snprintf(lines[line++], MAX_LEN, "vel=0.2, acc=2, tr=0.0: turn=5, time=2");
-	snprintf(lines[line++], MAX_LEN, "vel=-0.2, acc=2: dist=0.1");
-	snprintf(lines[line++], MAX_LEN, "vel=0.0, event=2: time=0.1");
+	snprintf(lines[line++], MAX_LEN, "vel=0.2, acc=2, tr=0.0: turn=-90");
+	snprintf(lines[line++], MAX_LEN, "vel=0.2, acc=2, tr=0.0: turn=5");
+	snprintf(lines[line++], MAX_LEN, "vel=-0.2, acc=2: lv>16");
+	snprintf(lines[line++], MAX_LEN, "vel=0.0, event=%d: time=0.1", distanceCount);
         sendAndActivateSnippet(lines, line);
-       
-        state = 21;
-      }
-      break;
-
-    case 21: 
-      if (bridge->event->isEventSet(2))
-      {
-	int line = 0;
-	bridge->event->isEventSet(2);
+ 
         if (distanceCount < 3)
 	{
-	  snprintf(lines[line++], MAX_LEN, "vel=0,event=1:time=0.1");
-          sendAndActivateSnippet(lines, line);
           distanceCount++;
           state = 10;
-	  printf("distanceCount: %d",distanceCount);
+	  printf("State 20, distanceCount: %d\n",distanceCount);
 	}
         else
 	{
           state = 66;
+	  printf("State 20, max distanceCount reached\n");
 	}
       }
       break;
@@ -687,16 +674,17 @@ bool UMission::mission1(int & state)
       {
         int line = 0;
         bridge->event->isEventSet(1);
-        dist = ((cam->distanceToObject)/1000) - 0.2;
+        dist = ((cam->distanceToObject)/1000-0.20);
         angle = cam->angleToObject;
         printf("The distance result is: %f\n", dist);
 	printf("The angle result is: %f\n", angle);
 
-        snprintf(lines[line++], MAX_LEN,   "vel=0.2,acc=2,tr=0.0:turn=%.1f", angle);	
+        snprintf(lines[line++], MAX_LEN,   "vel=0.2,acc=2,tr=0.0:turn=%.1f", (1.0)*angle);	
         snprintf(lines[line++], MAX_LEN, "vel=0.2,acc=2 :dist=%.3f", dist);
         snprintf(lines[line++], MAX_LEN,   "vel=0, event=1:time=0.1");
         sendAndActivateSnippet(lines, line);
       
+	printf("State 30\n");
         state = 40;
       }
       break;
@@ -707,14 +695,13 @@ bool UMission::mission1(int & state)
         int line = 0;
         bridge->event->isEventSet(1);
 
-        snprintf(lines[line++], MAX_LEN,"servo=3,pservo=-900:time=4");
-	snprintf(lines[line++], MAX_LEN,"servo=3,pservo=0:time=2");
+        snprintf(lines[line++], MAX_LEN,"servo=3,pservo=-100:time=2");
 	snprintf(lines[line++], MAX_LEN,   "vel=0.2,acc=2,tr=0.0 :turn=%.1f", (-1.0)*angle);	
-        //snprintf(lines[line++], MAX_LEN, "vel=-0.2,acc=2 :dist=%.3f", dist);
-	snprintf(lines[line++], MAX_LEN, "vel=-0.2,acc=2 :xl>16");
+	snprintf(lines[line++], MAX_LEN, "vel=-0.2,acc=2 :lv>16");
 	snprintf(lines[line++], MAX_LEN,   "vel=0, event=1:time=0.1");
         sendAndActivateSnippet(lines, line);
       
+	printf("State 40\n");
         state = 41;
       }
       break;
@@ -724,17 +711,18 @@ bool UMission::mission1(int & state)
       {
         int line = 0;
         bridge->event->isEventSet(1);
-	snprintf(lines[line++], MAX_LEN, "vel=0.2, tr=0.0: turn=-90, time=2");
+	snprintf(lines[line++], MAX_LEN, "vel=0.2, tr=0.0: turn=90");
+	snprintf(lines[line++], MAX_LEN, "vel=0.2, tr=0.0: turn=-5");
 	snprintf(lines[line++], MAX_LEN, "vel=0.2, acc=2, white=1, edgel=0: xl>16");
 	snprintf(lines[line++], MAX_LEN, "vel=0:time=0.1");
-	snprintf(lines[line++], MAX_LEN, "vel=0.2, tr=0.0: turn=90, time=2");
+	snprintf(lines[line++], MAX_LEN, "vel=0.2, tr=0.0: turn=90");
 	snprintf(lines[line++], MAX_LEN, "vel=0:time=0.1");
-	snprintf(lines[line++], MAX_LEN, "vel=0.2, acc=2, white=1, edgel=0:dist=0.3");
+	snprintf(lines[line++], MAX_LEN, "vel=0.2, acc=2, white=1, edgel=0:dist=0.1");
 	snprintf(lines[line++], MAX_LEN, "vel=0:time=0.1");
-	snprintf(lines[line++], MAX_LEN,"servo=3,pservo=-900:time=4");
-	snprintf(lines[line++], MAX_LEN,"servo=3,pservo=0:time=2");
-
+	snprintf(lines[line++], MAX_LEN,"servo=3,pservo=900:time=2");
         sendAndActivateSnippet(lines, line);
+
+	printf("State 41\n");
         state = 66;
       }
       break;
@@ -744,7 +732,7 @@ bool UMission::mission1(int & state)
       {
         int line = 0;
 	bridge->event->isEventSet(1);
-        snprintf(lines[line++], MAX_LEN, "vel=0.2, acc=2, tr=0.0: turn=90, time=2");
+        snprintf(lines[line++], MAX_LEN, "vel=0.2, acc=2, tr=0.0: turn=180, time=2");
 	snprintf(lines[line++], MAX_LEN, "vel=0.2, acc=2, tr=0.0: turn=-5, time=2");
 	snprintf(lines[line++], MAX_LEN, "vel=0.2, acc=2, white=1, edgel=0: xl>16");
         snprintf(lines[line++], MAX_LEN, "vel=0.0: time=0.1");
@@ -756,7 +744,7 @@ bool UMission::mission1(int & state)
     case 999:
     default:
       printf("mission 1 ended\n");
-      bridge->send("oled 5 mission 3 ended.");
+      bridge->send("oled 5 mission 3 ended\n");
       finished = true;
       break;
   }

@@ -96,6 +96,7 @@ UCamera::UCamera(UBridge * reg)
   th1 = NULL;
   th1stop = false;
   saveImage = false;
+  doObjectDetection = false;
   bridge = reg;
   arUcos = new ArUcoVals(this);
   cameraOpen = setupCamera();
@@ -121,7 +122,7 @@ void UCamera::openCamLog()
   imTime.now();
   imTime.getForFilename(date);
   // construct filename Image
-  snprintf(name, MNL, "log_image_%s.txt", date);
+  snprintf(name, MNL, "image_%s.txt", date);
   logImg = fopen(name, "w");
   //
   if (logImg != NULL)
@@ -225,8 +226,8 @@ void UCamera::run()
   UTime t;
   float dt = 0;
   saveImage = false;
+  doObjectDetection = false;
   doArUcoAnalysis = false;
-  // doObjectDetection = false;
   doArUcoLoopTest = false;
   distanceToObject = 0.0;
   angleToObject = 0.0;
@@ -261,8 +262,8 @@ void UCamera::run()
         }
         if (doObjectDetection)
         { 
-          //saveImageAsPng(im);
 	  processBallDetection(im);
+          doObjectDetection = false;
         }
         if (doArUcoAnalysis)
         { // do ArUco detection
@@ -291,11 +292,12 @@ void UCamera::run()
         }
       }
     }
-    else if (doArUcoAnalysis or saveImage)
+    else if (doArUcoAnalysis or saveImage or doObjectDetection)
     { // no camera
       printf("# ------  sorry, no camera is available ---------------\n");
       saveImage = false;
       doArUcoAnalysis = false;
+      doObjectDetection = false;
       sleep(1);
     }
     // wait a bit
@@ -352,37 +354,7 @@ void UCamera::saveImageAsPng(cv::Mat im, const char * filename)
  * */
 void UCamera::processBallDetection(cv::Mat im, const char * filename)
 {
-  const int MNL = 120;
-  char date[25];
-  char name[MNL];
-  const char * usename = filename;
-  saveImage = false;
-  // use date in filename
-  // get date as string
-  if (usename == NULL)
-  {
-    usename = "ucamera";
-  }
-  imTime.getForFilename(date);
-  // construct filename
-  snprintf(name, MNL, "i1%04d_%s_%s.png", imageNumber, usename, date);
-  // convert to RGB
-  //cv::cvtColor(im, im, cv::COLOR_BGR2RGB);
-  // make PNG option - compression level 6
-  vector<int> compression_params;
-  compression_params.push_back(cv::IMWRITE_PNG_COMPRESSION);
-  compression_params.push_back(6);
-  // save image
-  cv::imwrite(name, im, compression_params);
-  // debug message
-  printf("saved image to: %s\n", name);
-  if (logImg != NULL)
-  { // save to image logfile
-    fprintf(logImg, "%ld.%03ld %.3f %d 0 0 '%s'\n", imTime.getSec(), imTime.getMilisec(), bridge->info->regbotTime, imageNumber, name);
-    fflush(logImg);
-  }
   
-  ////////////////////////OBJECT DETECTION PART///////////////////
 
   float xd = 0;
   float d = 0;
@@ -390,7 +362,6 @@ void UCamera::processBallDetection(cv::Mat im, const char * filename)
   float true_alfa = 0.0;
   float alfa = 0;
   float vector[3] = {};
-
   
   cv::Mat bgr_image = im;
 
@@ -445,19 +416,28 @@ void UCamera::processBallDetection(cv::Mat im, const char * filename)
 	alfa = (atan (xd/FOCALLENGTH) * 180 / PI); // We need to compensate for the position of the camera
 	// The camera is 200 mm from the middle point of the robot	
 	true_dist = sqrt(pow(200,2)+pow(d,2)-cos((180-alfa)*PI/180)*2*200*d);	
-	printf("The value of true_dist: %.3f", true_dist);
 	true_alfa = (-1)*(asin(sin((180-alfa)*PI/180)*(d/true_dist)))*180/PI;
-	printf("The value of true_alfa: %.3f", true_alfa);
+	
+	if (isnan(true_dist)!=0 || isnan(true_alfa)!=0 || isinf(true_dist)!=0 || isinf(true_alfa)!=0)
+  	{
+          true_dist = -100.0;
+          true_alfa = 0.0;
+  	}
   } 
-  else {
+  else 
+  {
 	xd = (IMAGEWIDTH/2-vector[0])*SENSORWIDTH/IMAGEWIDTH;
 	alfa = (atan (xd/FOCALLENGTH) * 180 / PI);
 	true_dist = sqrt(pow(200,2)+pow(d,2)-cos((180-alfa)*PI/180)*2*200*d);
-	printf("The value of true_dist: %.3f", true_dist);	
 	true_alfa = (asin(sin((180-alfa)*PI/180)*(d/true_dist)))*180/PI;
-	printf("The value of true_alfa: %.3f", true_alfa);
+
+	if (isnan(true_dist)!=0 || isnan(true_alfa)!=0 || isinf(true_dist)!=0 || isinf(true_alfa)!=0)
+  	{
+          true_dist = -100.0;
+          true_alfa = 0.0;
+  	}
   }
-	
+  /*	
   if(circles.size() == 0) std::exit(-1);
   for(size_t current_circle = 0; current_circle < circles.size(); ++current_circle) 
   {
@@ -465,22 +445,17 @@ void UCamera::processBallDetection(cv::Mat im, const char * filename)
 	int radius = std::round(circles[current_circle][2]);
 	cv::circle(orig_image, center, radius, cv::Scalar(0, 255, 0), 5);
   }
-  if (isnan(true_dist)!=0 && isnan(true_alfa)!=0 && isinf(true_dist)!=0 && isinf(true_alfa)!=0)
-  {
-    distanceToObject = 0.0;
-    angleToObject = 0.0;
-  }
-  else
-  {
-    distanceToObject = true_dist;
-    angleToObject = true_alfa;
-  }
-  printf("Balldetection distance is: %f\n", distanceToObject);
-  printf("Balldetection angle is: %f\n", angleToObject);
+  */
+  distanceToObject = true_dist;
+  angleToObject = true_alfa;
+
+  doObjectDetection = false;
+  
+  printf("Balldetection distance is: %.3f\n", distanceToObject);
+  printf("Balldetection angle is: %.3f\n", angleToObject);
 
   saveImageAsPng(finmask);
-	
-  doObjectDetection = false;
+  saveImageAsPng(im);
 }
 
 

@@ -672,6 +672,7 @@ bool UMission::mission1(int & state)
 	  {
             state = 66;
 	    printf("State 11, max distanceCount reached\n");
+            printf("No ball detected\n");
 	  }      
         }
       }

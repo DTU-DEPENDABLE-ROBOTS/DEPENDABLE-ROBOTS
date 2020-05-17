@@ -7,8 +7,6 @@
  program; if not, write to the * * Free Software Foundation, Inc., * * 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.  * 
  ***************************************************************************/
 
-
-
 #include <sys/time.h>
 #include <cstdlib>
 
@@ -16,16 +14,15 @@
 #include "utime.h"
 #include "ulibpose2pose.h"
 
-
-UMission::UMission(UBridge * regbot, UCamera * camera)
+UMission::UMission(UBridge *regbot, UCamera *camera)
 {
   cam = camera;
   bridge = regbot;
   threadActive = 100;
   // initialize line list to empty
   for (int i = 0; i < missionLineMax; i++)
-  { // add to line list 
-    lines[i] = lineBuffer[i];    
+  { // add to line list
+    lines[i] = lineBuffer[i];
     // terminate c-strings strings - good practice, but not needed
     lines[i][0] = '\0';
   }
@@ -33,30 +30,28 @@ UMission::UMission(UBridge * regbot, UCamera * camera)
   th1 = new thread(runObj, this);
 }
 
-
 UMission::~UMission()
 {
   printf("Mission class destructor\n");
 }
 
-
 void UMission::run()
 {
   while (not active and not th1stop)
     usleep(100000);
-//   printf("UMission::run:  active=%d, th1stop=%d\n", active, th1stop);
+  //   printf("UMission::run:  active=%d, th1stop=%d\n", active, th1stop);
   if (not th1stop)
     runMission();
   printf("UMission::run: mission thread ended\n");
 }
-  
+
 void UMission::printStatus()
 {
   printf("# ------- Mission ----------\n");
   printf("# active = %d, finished = %d\n", active, finished);
   printf("# mission part=%d, in state=%d\n", mission, missionState);
 }
-  
+
 /**
  * Initializes the communication with the robobot_bridge and the REGBOT.
  * It further initializes a (maximum) number of mission lines 
@@ -74,7 +69,7 @@ void UMission::missionInit()
   // the mission is started, but staying in place (velocity=0, so servo action)
   //
   bridge->send("robot <add thread=1\n");
-  // Irsensor should be activated a good time before use 
+  // Irsensor should be activated a good time before use
   // otherwise first samples will produce "false" positive (too short/negative).
   bridge->send("robot <add irsensor=1,vel=0:dist<0.2\n");
   //
@@ -108,11 +103,10 @@ void UMission::missionInit()
   bridge->event->clearEvents();
 }
 
-
-void UMission::sendAndActivateSnippet(char ** missionLines, int missionLineCnt)
+void UMission::sendAndActivateSnippet(char **missionLines, int missionLineCnt)
 {
-  // Calling sendAndActivateSnippet automatically toggles between thread 100 and 101. 
-  // Modifies the currently inactive thread and then makes it active. 
+  // Calling sendAndActivateSnippet automatically toggles between thread 100 and 101.
+  // Modifies the currently inactive thread and then makes it active.
   const int MSL = 100;
   char s[MSL];
   int threadToMod = 101;
@@ -136,10 +130,10 @@ void UMission::sendAndActivateSnippet(char ** missionLines, int missionLineCnt)
   // send mission lines using '<mod ...' command
   for (int i = 0; i < missionLineCnt; i++)
   { // send lines one at a time
-    if (strlen((char*)missionLines[i]) > 0)
+    if (strlen((char *)missionLines[i]) > 0)
     { // send a modify line command
-      snprintf(s, MSL, "<mod %d %d %s\n", threadToMod, i+1, missionLines[i]);
-      bridge->send(s); 
+      snprintf(s, MSL, "<mod %d %d %s\n", threadToMod, i + 1, missionLines[i]);
+      bridge->send(s);
     }
     else
       // an empty line will end code snippet too
@@ -147,13 +141,12 @@ void UMission::sendAndActivateSnippet(char ** missionLines, int missionLineCnt)
   }
   // let it sink in (10ms)
   usleep(10000);
-  // Activate new snippet thread and stop the other  
+  // Activate new snippet thread and stop the other
   snprintf(s, MSL, "<event=%d\n", startEvent);
   bridge->send(s);
   // save active thread number
   threadActive = threadToMod;
 }
-
 
 //////////////////////////////////////////////////////////
 
@@ -197,7 +190,7 @@ void UMission::runMission()
   }
   if (not bridge->info->isHeartbeatOK())
   { // heartbeat should come at least once a second
-    system("espeak \"Oops, no usable connection with robot.\" -ven+f4 -s130 -a60 2>/dev/null &"); 
+    system("espeak \"Oops, no usable connection with robot.\" -ven+f4 -s130 -a60 2>/dev/null &");
     bridge->send("oled 3 Oops: Lost REGBOT!");
     printf("# ---------- error ------------\n");
     printf("# No heartbeat from robot. Bridge or REGBOT is stuck\n");
@@ -214,7 +207,7 @@ void UMission::runMission()
     { // just wait, do not continue mission
       usleep(20000);
       if (not inManual)
-        system("espeak \"Mission paused.\" -ven+f4 -s130 -a40 2>/dev/null &"); 
+        system("espeak \"Mission paused.\" -ven+f4 -s130 -a40 2>/dev/null &");
       inManual = true;
       bridge->send("oled 3 GAMEPAD control\n");
     }
@@ -225,7 +218,7 @@ void UMission::runMission()
         // - in response to 'bot->send("start\n")' earlier
         if (bridge->event->isEventSet(33))
         { // start mission (button pressed)
-//           printf("Mission::runMission: starting mission (part from %d to %d)\n", fromMission, toMission);
+          //           printf("Mission::runMission: starting mission (part from %d to %d)\n", fromMission, toMission);
           regbotStarted = true;
         }
       }
@@ -237,15 +230,18 @@ void UMission::runMission()
           system("espeak \"Mission resuming.\" -ven+f4 -s130 -a40 2>/dev/null &");
           bridge->send("oled 3 running AUTO\n");
         }
-        switch(mission)
+        switch (mission)
         {
-          case 1: // running auto mission
-            ended = mission1(missionState);
-            break;
-          default:
-            // no more missions - end everything
-            finished = true;
-            break;
+        case 1: // running auto mission
+          ended = mission1(missionState);
+          break;
+        case 2: // running auto mission
+          ended = mission2(missionState);
+          break;
+        default:
+          // no more missions - end everything
+          finished = true;
+          break;
         }
         if (ended)
         { // start next mission part in state 0
@@ -262,14 +258,12 @@ void UMission::runMission()
           bridge->send(s);
           if (logMission != NULL)
           {
-            fprintf(logMission, "%ld.%03ld %d %d\n", 
+            fprintf(logMission, "%ld.%03ld %d %d\n",
                     t.getSec(), t.getMilisec(),
-                    missionOld, missionStateOld
-            );
-            fprintf(logMission, "%ld.%03ld %d %d\n", 
+                    missionOld, missionStateOld);
+            fprintf(logMission, "%ld.%03ld %d %d\n",
                     t.getSec(), t.getMilisec(),
-                    mission, missionState
-            );
+                    mission, missionState);
           }
           missionOld = mission;
           missionStateOld = missionState;
@@ -315,11 +309,10 @@ void UMission::runMission()
   }
   bridge->send("stop\n");
   snprintf(s, MSL, "espeak \"%s finished.\"  -ven+f4 -s130 -a12  2>/dev/null &", bridge->info->robotname);
-  system(s); 
+  system(s);
   printf("Mission:: all finished\n");
   bridge->send("oled 3 finished\n");
 }
-
 
 ////////////////////////////////////////////////////////////
 /**
@@ -328,150 +321,177 @@ void UMission::runMission()
  *              therefore defined as reference with the '&'.
  *              State will be 0 at first call.
  * \returns true, when finished. */
-bool UMission::mission1(int & state)
+bool UMission::mission1(int &state)
 {
   bool finished = false;
 
   switch (state)
   {
-    /*case 0:
+  case 0:
+  {
+    printf("Go back to junction\n");
+    int line = 0;
+    snprintf(lines[line++], MAX_LEN, "head=-166,acc=1:time=0.1");
+    snprintf(lines[line++], MAX_LEN, "head=-166,acc=1:time=2");
+    snprintf(lines[line++], MAX_LEN, "vel=0,white=1,edgel=0:time=1");
+    snprintf(lines[line++], MAX_LEN, "vel=0.15, acc=2:xl>16");
+    snprintf(lines[line++], MAX_LEN, "vel=0:time=0.1");
+    snprintf(lines[line++], MAX_LEN, "vel=0.2, tr=0, acc=2:turn=90");
+    snprintf(lines[line++], MAX_LEN, "vel=0.2, tr=0, acc=2:turn=-5");
+    snprintf(lines[line++], MAX_LEN, "vel=0:ir2<0.3");
+    snprintf(lines[line++], MAX_LEN, "vel=0,event=1");
+    sendAndActivateSnippet(lines, line);
+    bridge->event->isEventSet(1);
+
+    state = 2;
+    break;
+  }
+
+  case 2:
+  {
+    if (bridge->event->isEventSet(1))
     {
-      printf("Go back to junction\n");
+      printf("Robot passed, get to the track\n");
+
       int line = 0;
-      snprintf(lines[line++], MAX_LEN,   "head=-166,acc=1:time=0.1");
-      snprintf(lines[line++], MAX_LEN,   "head=-166,acc=1:time=2");
-      snprintf(lines[line++], MAX_LEN,   "vel=0,white=1,edgel=0:time=1");
-      snprintf(lines[line++], MAX_LEN,   "vel=0.15, acc=2:xl>16");
-      snprintf(lines[line++], MAX_LEN,   "vel=0:time=0.1");
-      snprintf(lines[line++], MAX_LEN,   "vel=0.2, tr=0, acc=2:turn=90");
-      snprintf(lines[line++], MAX_LEN,   "vel=0.2, tr=0, acc=2:turn=-5");
-      snprintf(lines[line++], MAX_LEN,   "vel=0:ir2<0.3");
-      snprintf(lines[line++], MAX_LEN,   "vel=0,event=1");
+
+      snprintf(lines[line++], MAX_LEN, "vel=0,acc=0, white=1, edgel=0:time=4");
+      snprintf(lines[line++], MAX_LEN, "vel=0.2,acc=2, white=1, edgel=0:dist=0.2");
+      snprintf(lines[line++], MAX_LEN, "vel=0.2:xl>16");
+      snprintf(lines[line++], MAX_LEN, "vel=0.2, tr=0, acc=2:turn=90");
+      snprintf(lines[line++], MAX_LEN, "vel=0.2, tr=0, acc=2:turn=-5");
+      snprintf(lines[line++], MAX_LEN, "vel=0,event=2");
       sendAndActivateSnippet(lines, line);
-      bridge->event->isEventSet(1);
-
-      state=++;
-      break;
-    }
-
-    case 2:
-    {
-      if (bridge->event->isEventSet(1))
-      {
-        printf("Robot passed, get to the track\n");
-       
-        int line = 0;
-
-        snprintf(lines[line++], MAX_LEN,   "vel=0,acc=0, white=1, edger=0:time=2");
-        snprintf(lines[line++], MAX_LEN,   "vel=0.2,acc=2, white=1, edger=0:dist=0.2");
-        snprintf(lines[line++], MAX_LEN,   "vel=0.2:xl>16");
-        snprintf(lines[line++], MAX_LEN,   "vel=0.2, tr=0, acc=2:turn=90");
-        snprintf(lines[line++], MAX_LEN,   "vel=0.2, tr=0, acc=2:turn=-5");
-        snprintf(lines[line++], MAX_LEN,   "vel=0,event=2");
-        sendAndActivateSnippet(lines, line);
-        bridge->event->isEventSet(2);
-
-        state++;
-      }
-      break;
-    }
-
-    case 3:
-      if (bridge->event->isEventSet(3))
-        {
-          printf("Start following other robot\n");
-          state++;
-        }
-      break;*/
-
-    case 0:
-    {
-      bridge->event->isEventSet(1);
       bridge->event->isEventSet(2);
+
+      state = 10;
+    }
+    break;
+  }
+
+  case 10:
+    if (bridge->event->isEventSet(2))
+    {
       int line = 0;
-      ir_dist = bridge->irdist->dist[1];
-      error = ir_dist - ref_dist;
-      speed += error;
-      speed = ir_dist < 0.1 ? 0.0 : speed;
-      speed = speed < 0.4 ? speed : 0.4;
-      speed = speed < 0.0 ? 0.0 : speed;
-      // printf("Speed: %.3f\n", speed);
-      snprintf(lines[line++], MAX_LEN,   "vel=%.3f, acc=2, white=1, edgel=0:time=0.2, xl>16", speed);
-      snprintf(lines[line++], MAX_LEN,   "goto=2,last=5");
-      snprintf(lines[line++], MAX_LEN,   "event=1");  
-      snprintf(lines[line++], MAX_LEN,   "label=2");  
+      snprintf(lines[line++], MAX_LEN, "vel=0:time=0.1");
       sendAndActivateSnippet(lines, line);
-
-      if (bridge->event->isEventSet(1))
-          cross_count += 1;
-          printf("Cross counter: %d\n", cross_count);
-           bridge->event->isEventSet(1);
-          if (cross_count==3)
-          {
-              printf("Cross counter reached 3, finishing mission.\n");
-              int line = 0;
-              snprintf(lines[line++], MAX_LEN,   "vel=0,event=2:time=0.1");
-              sendAndActivateSnippet(lines, line);
-              state = 5;
-              break;
-          }
-      }
-      break;
-
-    case 5:
-    {
-      printf("Start exiting manouver.\n");
-
-      int line = 0;
-      snprintf(lines[line++], MAX_LEN,   "vel=0,acc=2:time=0.5");
-      snprintf(lines[line++], MAX_LEN,   "vel=0,event=5");
-      sendAndActivateSnippet(lines, line);      
-      bridge->event->isEventSet(5);
-      state++;
-      break;
+      // finished first drive
+      printf("Finising task\n");
+      state = 999;
     }
+    break;
 
-    case 6:
-    {
-      if (bridge->event->isEventSet(5))
-        {
-          printf("Leaving track.\n");
-          int line = 0;
-          snprintf(lines[line++], MAX_LEN,   "vel=-0.1,acc=2:dist=0.08");
-          snprintf(lines[line++], MAX_LEN,   "vel=0.2, acc=2, tr=0:turn=90");
-          snprintf(lines[line++], MAX_LEN,   "vel=0.2, acc=2, tr=0:turn=-5");
-          snprintf(lines[line++], MAX_LEN,   "vel=0,acc=2,white=1, edger=0:time=0.5");
-          snprintf(lines[line++], MAX_LEN,   "vel=0.1,acc=2, white=1, edger=0:lv<4, dist=0.1");
-          snprintf(lines[line++], MAX_LEN,   "vel=0.2,acc=2, white=1, edger=0:lv<4, dist=1");
-          snprintf(lines[line++], MAX_LEN,   "vel=0,event=10:time=0.1");
-          sendAndActivateSnippet(lines, line);
-          bridge->event->isEventSet(10);
-          state = 10;
-        }
-      break;
-    }
-
-    case 10:
-      if (bridge->event->isEventSet(10))
-        { 
-          int line = 0;
-          snprintf(lines[line++], MAX_LEN,   "vel=0:time=0.1");
-          sendAndActivateSnippet(lines, line);
-          // finished first drive
-          printf("Finising task\n");       
-          state = 999;
-        }
-      break;
-
-    case 999:
-    default:
-      printf("mission 1 ended\n");
-      finished = true;
-      break;
+  case 999:
+  default:
+    printf("mission 1 ended\n");
+    finished = true;
+    break;
   }
   return finished;
 }
 
+bool UMission::mission2(int &state)
+{
+  bool finished = false;
+
+  switch (state)
+  {
+  case 0:
+    {
+      printf("Start following other robot\n");
+      int line = 0;
+      snprintf(lines[line++], MAX_LEN, "vel=0,event=3:time=0.5");
+      sendAndActivateSnippet(lines, line);
+      bridge->event->isEventSet(3);
+      state = 4;
+    }
+    break;
+
+  case 4:
+    if (bridge->event->isEventSet(3))
+    {
+      int line = 0;
+      snprintf(lines[line++], MAX_LEN, "vel=0.4, acc=2, white=1, edger=0:dist=0.1");
+      snprintf(lines[line++], MAX_LEN, "vel=0.4, acc=2, white=1, edger=0:xl>16");
+      snprintf(lines[line++], MAX_LEN, "event=4");
+      sendAndActivateSnippet(lines, line);
+      bridge->event->isEventSet(4);
+
+      state++;
+    }
+    break;
+
+  case 5:
+  {
+    if (bridge->event->isEventSet(4))
+    {
+      cross_count += 1;
+      printf("Cross counter: %d\n", cross_count);
+      if (cross_count == 2)
+      {
+        printf("Cross counter reached 2, finishing mission.\n");
+        int line = 0;
+        snprintf(lines[line++], MAX_LEN, "vel=0,event=5:time=0.1");
+        sendAndActivateSnippet(lines, line);
+        bridge->event->isEventSet(5);
+        state = 6;
+        break;
+      }
+      int line = 0;
+      snprintf(lines[line++], MAX_LEN, "event=3");
+      sendAndActivateSnippet(lines, line);
+      bridge->event->isEventSet(3);
+      state = 4;
+    }
+    else if (bridge->irdist->dist[1] < 0.2)
+    {
+      printf("Vehicle too close, waiting...\n");
+      int line = 0;
+      snprintf(lines[line++], MAX_LEN, "vel=0:time=2");
+      snprintf(lines[line++], MAX_LEN, "event=3");
+      sendAndActivateSnippet(lines, line);
+      bridge->event->isEventSet(3);
+      state = 4;
+    }
+  }
+  break;
+
+  case 6:
+    if (bridge->event->isEventSet(5))
+    {
+      printf("Leaving track.\n");
+      int line = 0;
+      snprintf(lines[line++], MAX_LEN, "vel=0.2, acc=2, tr=0:turn=90");
+      //snprintf(lines[line++], MAX_LEN, "vel=0.2, acc=2, tr=0:turn=-5");
+      snprintf(lines[line++], MAX_LEN, "vel=0,acc=2,white=1, edger=0:time=0.5");
+      snprintf(lines[line++], MAX_LEN, "vel=0.2,acc=2, white=1, edger=0:lv<4, dist=1");
+      snprintf(lines[line++], MAX_LEN, "vel=0,event=10:time=0.1");
+      sendAndActivateSnippet(lines, line);
+      bridge->event->isEventSet(10);
+      state = 10;
+    }
+    break;
+
+  case 10:
+    if (bridge->event->isEventSet(10))
+    {
+      int line = 0;
+      snprintf(lines[line++], MAX_LEN, "vel=0:time=0.1");
+      sendAndActivateSnippet(lines, line);
+      // finished first drive
+      printf("Finising task\n");
+      state = 999;
+    }
+    break;
+
+  case 999:
+  default:
+    printf("mission 1 ended\n");
+    finished = true;
+    break;
+  }
+  return finished;
+}
 
 void UMission::openLog()
 {

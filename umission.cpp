@@ -238,6 +238,12 @@ void UMission::runMission()
         case 2: // running auto mission
           ended = mission2(missionState);
           break;
+        case 3: // running auto mission
+          ended = mission3(missionState);
+          break;
+        case 4: // running auto mission
+          ended = mission4(missionState);
+          break;
         default:
           // no more missions - end everything
           finished = true;
@@ -321,7 +327,112 @@ void UMission::runMission()
  *              therefore defined as reference with the '&'.
  *              State will be 0 at first call.
  * \returns true, when finished. */
-bool UMission::mission1(int &state)
+bool UMission::mission1(int & state)
+{
+  bool finished = false;
+  switch (state)
+  {
+    case 0:
+      {
+        printf("\n");
+        int line = 0;
+
+        // clearing both events
+        bridge->event->isEventSet(1);
+        bridge->event->isEventSet(2);
+        snprintf(lines[line++], MAX_LEN,   "vel=0,acc=0, log=5, white=1, edger=0:time=2");
+        snprintf(lines[line++], MAX_LEN,   "vel=0.2, acc=2, white=1, edger=0: xl>16, ir2<0.1");
+        snprintf(lines[line++], MAX_LEN,   "goto=1:last=8");
+        snprintf(lines[line++], MAX_LEN,   "vel=0,event=2,goto=2:time=0.1");
+        snprintf(lines[line++], MAX_LEN,   "label=1,event=1:time=0.1");
+        snprintf(lines[line++], MAX_LEN,   "label=2");
+        sendAndActivateSnippet(lines, line);
+
+        state = 1;
+      }
+      break;
+    
+
+    case 1:
+      if (bridge->event->isEventSet(2))
+      { printf("Object detected, starting avoidance manouver!\n");
+        int line = 0;
+        bridge->event->isEventSet(3);
+        snprintf(lines[line++], MAX_LEN,   "vel=0:time=0.1");
+        snprintf(lines[line++], MAX_LEN,   "vel=0.2, tr=0, acc=2:turn=-90");
+        snprintf(lines[line++], MAX_LEN,   "vel=0.2, tr=0, acc=2:turn=5");
+        snprintf(lines[line++], MAX_LEN,   "vel=0: time=0.1");
+
+        snprintf(lines[line++], MAX_LEN,   "vel=-0.2:ir1<0.3");
+        snprintf(lines[line++], MAX_LEN,   "vel=0.2:ir1>0.5");
+        snprintf(lines[line++], MAX_LEN,   "vel=0.2:dist=0.3");
+
+        snprintf(lines[line++], MAX_LEN,   "vel=0.2, tr=0, acc=2:turn=90");
+        snprintf(lines[line++], MAX_LEN,   "vel=0.2, tr=0, acc=2:turn=-5");
+        snprintf(lines[line++], MAX_LEN,   "vel=0, event=3: time=1");
+        sendAndActivateSnippet(lines, line);    
+
+        state = 2;
+      }
+
+      else if (bridge->event->isEventSet(1))
+      { printf("End reached without obstacle!\n");     
+        int line = 0;
+        snprintf(lines[line++], MAX_LEN,   "vel=0,event=1:time=0.1");
+        sendAndActivateSnippet(lines, line);
+        
+        state = 10;
+      }
+      break;
+
+    case 2:
+      if (bridge->event->isEventSet(3))
+      { printf("Avoidance manouver half way!\n");
+        int line = 0;
+        bridge->event->isEventSet(1);
+        snprintf(lines[line++], MAX_LEN,   "vel=0.2:ir1<0.25");
+        snprintf(lines[line++], MAX_LEN,   "vel=0.2:ir1>0.25");
+        snprintf(lines[line++], MAX_LEN,   "vel=0.2:dist=0.3");
+
+        snprintf(lines[line++], MAX_LEN,   "vel=0.2, tr=0, acc=2:turn=90");
+        snprintf(lines[line++], MAX_LEN,   "vel=0.2, tr=0, acc=2:turn=-5");
+        snprintf(lines[line++], MAX_LEN,   "vel=0: time=1");
+
+        snprintf(lines[line++], MAX_LEN,   "vel=0.2:lv>15");
+        snprintf(lines[line++], MAX_LEN,   "vel=0: time=1");
+
+        snprintf(lines[line++], MAX_LEN,   "vel=0.2, tr=0, acc=2:turn=-90");
+        snprintf(lines[line++], MAX_LEN,   "vel=0.2, tr=0, acc=2:turn=5");
+        snprintf(lines[line++], MAX_LEN,   "vel=0: time=1");
+        snprintf(lines[line++], MAX_LEN,   "vel=0.2, white=1, edger=0:xl>18");
+        snprintf(lines[line++], MAX_LEN,   "vel=0,event=1:time=0.1");
+        sendAndActivateSnippet(lines, line);    
+        state = 10;
+      }
+      break;    
+
+    case 10:
+      if (bridge->event->isEventSet(1))
+      { printf("\n");
+        int line = 0;
+        snprintf(lines[line++], MAX_LEN,   "vel=0:time=0.1");
+        sendAndActivateSnippet(lines, line);
+        // finished first drive
+        printf("Finising task\n");       
+        state = 999;
+      }
+      break;
+    case 999:
+    default:
+      printf("mission 1 ended\n");
+      finished = true;
+      break;
+  }
+  return finished;
+}
+
+
+bool UMission::mission3(int &state)
 {
   bool finished = false;
 
@@ -390,7 +501,7 @@ bool UMission::mission1(int &state)
   return finished;
 }
 
-bool UMission::mission2(int &state)
+bool UMission::mission4(int &state)
 {
   bool finished = false;
 

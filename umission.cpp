@@ -327,327 +327,327 @@ void UMission::runMission()
  *              therefore defined as reference with the '&'.
  *              State will be 0 at first call.
  * \returns true, when finished. */
-bool UMission::mission1(int & state)
+bool UMission::mission1(int &state)
 {
   bool finished = false;
   switch (state)
   {
-    case 0:
-      {
-        printf("\n");
-        int line = 0;
+  case 0:
+  {
+    printf("\n");
+    int line = 0;
 
-        // clearing both events
-        bridge->event->isEventSet(1);
-        bridge->event->isEventSet(2);
-        snprintf(lines[line++], MAX_LEN,   "vel=0,acc=0, log=5, white=1, edger=0:time=2");
-        snprintf(lines[line++], MAX_LEN,   "vel=0.2, acc=2, white=1, edger=0: dist=2, ir2<0.1");
-        snprintf(lines[line++], MAX_LEN,   "goto=1:last=8");
-        snprintf(lines[line++], MAX_LEN,   "vel=0,event=2,goto=2:time=0.1");
-        snprintf(lines[line++], MAX_LEN,   "label=1,event=1:time=0.1");
-        snprintf(lines[line++], MAX_LEN,   "label=2");
-        sendAndActivateSnippet(lines, line);
+    // clearing both events
+    bridge->event->isEventSet(1);
+    bridge->event->isEventSet(2);
+    snprintf(lines[line++], MAX_LEN, "vel=0,acc=0, log=5, white=1, edger=0:time=2");
+    snprintf(lines[line++], MAX_LEN, "vel=0.2, acc=2, white=1, edger=0: dist=2, ir2<0.1");
+    snprintf(lines[line++], MAX_LEN, "goto=1:last=8");
+    snprintf(lines[line++], MAX_LEN, "vel=0,event=2,goto=2:time=0.1");
+    snprintf(lines[line++], MAX_LEN, "label=1,event=1:time=0.1");
+    snprintf(lines[line++], MAX_LEN, "label=2");
+    sendAndActivateSnippet(lines, line);
 
-        state = 1;
-      }
-      break;
-    
+    state = 1;
+  }
+  break;
 
-    case 1:
-      if (bridge->event->isEventSet(2))
-      { printf("Object detected, starting avoidance manouver!\n");
-        int line = 0;
-        bridge->event->isEventSet(3);
-        snprintf(lines[line++], MAX_LEN,   "vel=0:time=0.1");
-        snprintf(lines[line++], MAX_LEN,   "vel=0.2, tr=0, acc=2:turn=-90");
-        snprintf(lines[line++], MAX_LEN,   "vel=0.2, tr=0, acc=2:turn=5");
-        snprintf(lines[line++], MAX_LEN,   "vel=0: time=0.1");
+  case 1:
+    if (bridge->event->isEventSet(2))
+    {
+      printf("Object detected, starting avoidance manouver!\n");
+      int line = 0;
+      bridge->event->isEventSet(3);
+      snprintf(lines[line++], MAX_LEN, "vel=0:time=0.1");
+      snprintf(lines[line++], MAX_LEN, "vel=0.2, tr=0, acc=2:turn=-90");
+      snprintf(lines[line++], MAX_LEN, "vel=0.2, tr=0, acc=2:turn=5");
+      snprintf(lines[line++], MAX_LEN, "vel=0: time=0.1");
 
-        snprintf(lines[line++], MAX_LEN,   "vel=-0.2:ir1<0.3");
-        snprintf(lines[line++], MAX_LEN,   "vel=0.2:ir1>0.5");
-        snprintf(lines[line++], MAX_LEN,   "vel=0.2:dist=0.3");
+      snprintf(lines[line++], MAX_LEN, "vel=-0.2:ir1<0.3");
+      snprintf(lines[line++], MAX_LEN, "vel=0.2:ir1>0.5");
+      snprintf(lines[line++], MAX_LEN, "vel=0.2:dist=0.3");
 
-        snprintf(lines[line++], MAX_LEN,   "vel=0.2, tr=0, acc=2:turn=90");
-        snprintf(lines[line++], MAX_LEN,   "vel=0.2, tr=0, acc=2:turn=-5");
-        snprintf(lines[line++], MAX_LEN,   "vel=0, event=3: time=1");
-        sendAndActivateSnippet(lines, line);    
+      snprintf(lines[line++], MAX_LEN, "vel=0.2, tr=0, acc=2:turn=90");
+      snprintf(lines[line++], MAX_LEN, "vel=0.2, tr=0, acc=2:turn=-5");
+      snprintf(lines[line++], MAX_LEN, "vel=0, event=3: time=1");
+      sendAndActivateSnippet(lines, line);
 
-        state = 2;
-      }
+      state = 2;
+    }
 
-      else if (bridge->event->isEventSet(1))
-      { printf("End reached without obstacle!\n");     
-        int line = 0;
-        snprintf(lines[line++], MAX_LEN,   "vel=0,event=1:time=0.1");
-        sendAndActivateSnippet(lines, line);
-        
-        state = 10;
-      }
-      break;
+    else if (bridge->event->isEventSet(1))
+    {
+      printf("End reached without obstacle!\n");
+      int line = 0;
+      snprintf(lines[line++], MAX_LEN, "vel=0,event=1:time=0.1");
+      sendAndActivateSnippet(lines, line);
 
-    case 2:
-      if (bridge->event->isEventSet(3))
-      { printf("Avoidance manouver half way!\n");
-        int line = 0;
-        bridge->event->isEventSet(1);
-        snprintf(lines[line++], MAX_LEN,   "vel=0.2:ir1<0.25");
-        snprintf(lines[line++], MAX_LEN,   "vel=0.2:ir1>0.25");
-        snprintf(lines[line++], MAX_LEN,   "vel=0.2:dist=0.3");
+      state = 10;
+    }
+    break;
 
-        snprintf(lines[line++], MAX_LEN,   "vel=0.2, tr=0, acc=2:turn=90");
-        snprintf(lines[line++], MAX_LEN,   "vel=0.2, tr=0, acc=2:turn=-5");
-        snprintf(lines[line++], MAX_LEN,   "vel=0: time=1");
+  case 2:
+    if (bridge->event->isEventSet(3))
+    {
+      printf("Avoidance manouver half way!\n");
+      int line = 0;
+      bridge->event->isEventSet(1);
+      snprintf(lines[line++], MAX_LEN, "vel=0.2:ir1<0.25");
+      snprintf(lines[line++], MAX_LEN, "vel=0.2:ir1>0.25");
+      snprintf(lines[line++], MAX_LEN, "vel=0.2:dist=0.3");
 
-        snprintf(lines[line++], MAX_LEN,   "vel=0.2:lv>15");
-        snprintf(lines[line++], MAX_LEN,   "vel=0: time=1");
+      snprintf(lines[line++], MAX_LEN, "vel=0.2, tr=0, acc=2:turn=90");
+      snprintf(lines[line++], MAX_LEN, "vel=0.2, tr=0, acc=2:turn=-5");
+      snprintf(lines[line++], MAX_LEN, "vel=0: time=1");
 
-        snprintf(lines[line++], MAX_LEN,   "vel=0.2, tr=0, acc=2:turn=-90");
-        snprintf(lines[line++], MAX_LEN,   "vel=0.2, tr=0, acc=2:turn=5");
-        //snprintf(lines[line++], MAX_LEN,   "vel=0: time=1");
-        //snprintf(lines[line++], MAX_LEN,   "vel=0.2, white=1, edger=0:xl>18");
-        snprintf(lines[line++], MAX_LEN,   "vel=0,event=1:time=0.1");
-        sendAndActivateSnippet(lines, line);    
-        state = 10;
-      }
-      break;    
+      snprintf(lines[line++], MAX_LEN, "vel=0.2:lv>15");
+      snprintf(lines[line++], MAX_LEN, "vel=0: time=1");
 
-    case 10:
-      if (bridge->event->isEventSet(1))
-      { printf("\n");
-        int line = 0;
-        snprintf(lines[line++], MAX_LEN,   "vel=0:time=0.1");
-        sendAndActivateSnippet(lines, line);
-        // finished first drive
-        printf("Finising task\n");       
-        state = 999;
-      }
-      break;
-    case 999:
-    default:
-      printf("mission 1 ended\n");
-      finished = true;
-      break;
+      snprintf(lines[line++], MAX_LEN, "vel=0.2, tr=0, acc=2:turn=-90");
+      snprintf(lines[line++], MAX_LEN, "vel=0.2, tr=0, acc=2:turn=5");
+      //snprintf(lines[line++], MAX_LEN,   "vel=0: time=1");
+      //snprintf(lines[line++], MAX_LEN,   "vel=0.2, white=1, edger=0:xl>18");
+      snprintf(lines[line++], MAX_LEN, "vel=0,event=1:time=0.1");
+      sendAndActivateSnippet(lines, line);
+      state = 10;
+    }
+    break;
+
+  case 10:
+    if (bridge->event->isEventSet(1))
+    {
+      printf("\n");
+      int line = 0;
+      snprintf(lines[line++], MAX_LEN, "vel=0:time=0.1");
+      sendAndActivateSnippet(lines, line);
+      // finished first drive
+      printf("Finising task\n");
+      state = 999;
+    }
+    break;
+  case 999:
+  default:
+    printf("mission 1 ended\n");
+    finished = true;
+    break;
   }
   return finished;
 }
 
-
-bool UMission::mission2(int & state)
+bool UMission::mission2(int &state)
 {
   bool finished = false;
   switch (state)
   {
-    case 0:
-      {   
-        int line = 0;
-        bridge->event->isEventSet(distanceCount);
+  case 0:
+  {
+    int line = 0;
+    bridge->event->isEventSet(distanceCount);
 
-        snprintf(lines[line++], MAX_LEN, "vel=0, acc=0, log=5, white=1, edgel=0: time=1");
-	snprintf(lines[line++], MAX_LEN, "servo=3, pservo=1000: time=1");
-        snprintf(lines[line++], MAX_LEN, "vel=0.25, acc=2, white=1, edgel=0: xl>16");
-	snprintf(lines[line++], MAX_LEN, "vel=0.25, acc=2, white=1, edgel=0: dist=0.1");
-        snprintf(lines[line++], MAX_LEN, "vel=0.0, acc=2: time=0.2");
-        snprintf(lines[line++], MAX_LEN, "vel=0.2, acc=2, tr=0.0: turn=-95");
-        snprintf(lines[line++], MAX_LEN, "vel=0.2, acc=2, tr=0.0: turn=5");
-	snprintf(lines[line++], MAX_LEN, "vel=-0.2, acc=2: lv>16");
-	snprintf(lines[line++], MAX_LEN, "vel=0.0, event=1: time=0.1");
-        sendAndActivateSnippet(lines, line);
+    snprintf(lines[line++], MAX_LEN, "vel=0, acc=0, log=5, white=1, edgel=0: time=1");
+    snprintf(lines[line++], MAX_LEN, "servo=3, pservo=1000: time=1");
+    snprintf(lines[line++], MAX_LEN, "vel=0.25, acc=2, white=1, edgel=0: xl>16");
+    snprintf(lines[line++], MAX_LEN, "vel=0.25, acc=2, white=1, edgel=0: dist=0.1");
+    snprintf(lines[line++], MAX_LEN, "vel=0.0, acc=2: time=0.2");
+    snprintf(lines[line++], MAX_LEN, "vel=0.2, acc=2, tr=0.0: turn=-95");
+    snprintf(lines[line++], MAX_LEN, "vel=0.2, acc=2, tr=0.0: turn=5");
+    snprintf(lines[line++], MAX_LEN, "vel=-0.2, acc=2: lv>16");
+    snprintf(lines[line++], MAX_LEN, "vel=0.0, event=1: time=0.1");
+    sendAndActivateSnippet(lines, line);
 
-        state = 1;
-        break;
-      }      
- 
-    case 1:     
-      if (bridge->event->isEventSet(1))      
+    state = 1;
+    break;
+  }
+
+  case 1:
+    if (bridge->event->isEventSet(1))
+    {
+      int line = 0;
+      bridge->event->isEventSet(2);
+      snprintf(lines[line++], MAX_LEN, "vel=0.0, event=2: time=5.0");
+      sendAndActivateSnippet(lines, line);
+
+      printf("State 1\n");
+      state = 11;
+      cam->doObjectDetection = true;
+    }
+    break;
+
+  case 2:
+  {
+    int line = 0;
+    bridge->event->isEventSet(2);
+    snprintf(lines[line++], MAX_LEN, "vel=0.0, event=2: time=5.0");
+
+    sendAndActivateSnippet(lines, line);
+    printf("State 2\n");
+    state = 11;
+    cam->doObjectDetection = true;
+  }
+  break;
+
+  case 3:
+  {
+    int line = 0;
+    bridge->event->isEventSet(2);
+    snprintf(lines[line++], MAX_LEN, "vel=0.0, event=2: time=5.0");
+
+    sendAndActivateSnippet(lines, line);
+    printf("State 3\n");
+    state = 11;
+    cam->doObjectDetection = true;
+  }
+  break;
+
+  case 11:
+    //if ((not cam->doObjectDetection) && bridge->event->isEventSet(2))
+    if ((not cam->doObjectDetection))
+    {
+      if (cam->distanceToObject > 0.0 and cam->distanceToObject < 1100.0)
       {
-	int line = 0;
-        bridge->event->isEventSet(2);
-	snprintf(lines[line++], MAX_LEN, "vel=0.0, event=2: time=5.0");
-        sendAndActivateSnippet(lines, line);
-
-	printf("State 1\n");
-	state = 11;
-        cam->doObjectDetection = true;
+        printf("State 11, object detected!!!\n");
+        state = 30;
       }
-      break;
-
-    case 2:
+      else
       {
-	int line = 0;
-        bridge->event->isEventSet(2);
-	snprintf(lines[line++], MAX_LEN, "vel=0.0, event=2: time=5.0");
-
-        sendAndActivateSnippet(lines, line);
-	printf("State 2\n");
-	state = 11;
-        cam->doObjectDetection = true;
-      }
-      break;
-
-    case 3:
-      {
-	int line = 0;
-        bridge->event->isEventSet(2);
-	snprintf(lines[line++], MAX_LEN, "vel=0.0, event=2: time=5.0");
-
-        sendAndActivateSnippet(lines, line);
-	printf("State 3\n");
-	state = 11;
-        cam->doObjectDetection = true;
-      }
-      break;
-
-
-    case 11:
-      //if ((not cam->doObjectDetection) && bridge->event->isEventSet(2))
-      if ((not cam->doObjectDetection))
-      { 
-        if (cam->distanceToObject > 0.0 and cam->distanceToObject < 1100.0)
+        if (distanceCount <= 2)
         {
-	  printf("State 11, object detected!!!\n");
-	  state = 30;
+          state = 20;
+          printf("State 11, no object detected\n");
         }
         else
         {
-	  if (distanceCount <= 2)
-	  {
-            state = 20;
-	    printf("State 11, no object detected\n");
-	  }
-          else
-	  {
-            state = 66;
-	    printf("State 11, max distanceCount reached\n");
-            printf("No ball detected\n");
-	  }      
+          state = 66;
+          printf("State 11, max distanceCount reached\n");
+          printf("No ball detected\n");
         }
       }
-      break;
+    }
+    break;
 
-    case 20: 
-      {
-        int line = 0;
-	bridge->event->isEventSet(distanceCount);
+  case 20:
+  {
+    int line = 0;
+    bridge->event->isEventSet(distanceCount);
 
-        snprintf(lines[line++], MAX_LEN, "vel=0.2, acc=2, tr=0.0: turn=90");
-	snprintf(lines[line++], MAX_LEN, "vel=0.2, acc=2, tr=0.0: turn=-5");
-	snprintf(lines[line++], MAX_LEN, "vel=0.2, acc=2, white=1, edgel=0: dist=0.3");
-        snprintf(lines[line++], MAX_LEN, "vel=0.0, acc=2: time=0.1");
-	snprintf(lines[line++], MAX_LEN, "vel=0.2, acc=2, tr=0.0: turn=-90");
-	snprintf(lines[line++], MAX_LEN, "vel=0.2, acc=2, tr=0.0: turn=5");
-	snprintf(lines[line++], MAX_LEN, "vel=-0.2, acc=2: lv>16");
-	snprintf(lines[line++], MAX_LEN, "vel=0.0, event=%d: time=0.1", distanceCount);
-        sendAndActivateSnippet(lines, line);
-	
-        state = 21;
-      }
-      break;
+    snprintf(lines[line++], MAX_LEN, "vel=0.2, acc=2, tr=0.0: turn=90");
+    snprintf(lines[line++], MAX_LEN, "vel=0.2, acc=2, tr=0.0: turn=-5");
+    snprintf(lines[line++], MAX_LEN, "vel=0.2, acc=2, white=1, edgel=0: dist=0.3");
+    snprintf(lines[line++], MAX_LEN, "vel=0.0, acc=2: time=0.1");
+    snprintf(lines[line++], MAX_LEN, "vel=0.2, acc=2, tr=0.0: turn=-90");
+    snprintf(lines[line++], MAX_LEN, "vel=0.2, acc=2, tr=0.0: turn=5");
+    snprintf(lines[line++], MAX_LEN, "vel=-0.2, acc=2: lv>16");
+    snprintf(lines[line++], MAX_LEN, "vel=0.0, event=%d: time=0.1", distanceCount);
+    sendAndActivateSnippet(lines, line);
 
-    case 21: 
-      if (bridge->event->isEventSet(distanceCount))
-      {
-	distanceCount++;
-        state = distanceCount;
-	printf("State 21, distanceCount: %d\n",distanceCount);    
-      }
-      break;
+    state = 21;
+  }
+  break;
 
-    case 30: 
-      {
-        int line = 0;
-        bridge->event->isEventSet(1);
-        dist = ((cam->distanceToObject)/1000-0.20);
-        angle = cam->angleToObject;
-        printf("The distance result is: %f\n", dist);
-	printf("The angle result is: %f\n", angle);
+  case 21:
+    if (bridge->event->isEventSet(distanceCount))
+    {
+      distanceCount++;
+      state = distanceCount;
+      printf("State 21, distanceCount: %d\n", distanceCount);
+    }
+    break;
 
-        snprintf(lines[line++], MAX_LEN, "vel=0.2,acc=2,tr=0.0:turn=%.1f", (1.0)*angle);	
-        snprintf(lines[line++], MAX_LEN, "vel=0.2,acc=2 :dist=%.3f", dist);
-        snprintf(lines[line++], MAX_LEN, "vel=0, event=1:time=0.1");
-        sendAndActivateSnippet(lines, line);
-      
-	printf("State 30\n");
-        state = 40;
-      }
-      break;
+  case 30:
+  {
+    int line = 0;
+    bridge->event->isEventSet(1);
+    dist = ((cam->distanceToObject) / 1000 - 0.20);
+    angle = cam->angleToObject;
+    printf("The distance result is: %f\n", dist);
+    printf("The angle result is: %f\n", angle);
 
-    case 40: 
-      if (bridge->event->isEventSet(1))
-      {
-        int line = 0;
-        bridge->event->isEventSet(1);
+    snprintf(lines[line++], MAX_LEN, "vel=0.2,acc=2,tr=0.0:turn=%.1f", (1.0) * angle);
+    snprintf(lines[line++], MAX_LEN, "vel=0.2,acc=2 :dist=%.3f", dist);
+    snprintf(lines[line++], MAX_LEN, "vel=0, event=1:time=0.1");
+    sendAndActivateSnippet(lines, line);
 
-        snprintf(lines[line++], MAX_LEN, "servo=3,pservo=-100:time=2");
-	snprintf(lines[line++], MAX_LEN, "vel=0.2,acc=2,tr=0.0 :turn=%.1f", (-1.0)*angle);	
-	snprintf(lines[line++], MAX_LEN, "vel=-0.2,acc=2 :lv>16");
-	snprintf(lines[line++], MAX_LEN, "vel=0, event=1:time=0.1");
-        sendAndActivateSnippet(lines, line);
-      
-	printf("State 40\n");
-        state = 41;
-      }
-      break;
+    printf("State 30\n");
+    state = 40;
+  }
+  break;
 
-    case 41: 
-      if (bridge->event->isEventSet(1))
-      {
-        int line = 0;
-        bridge->event->isEventSet(1);
-	snprintf(lines[line++], MAX_LEN, "vel=0.2, tr=0.0: turn=90");
-	snprintf(lines[line++], MAX_LEN, "vel=0.2, tr=0.0: turn=-5");
-	snprintf(lines[line++], MAX_LEN, "vel=0.3, acc=2, white=1, edgel=0: xl>16");
-	snprintf(lines[line++], MAX_LEN, "vel=0:time=0.1");
-	snprintf(lines[line++], MAX_LEN, "vel=0.2, tr=0.0: turn=90");
-	snprintf(lines[line++], MAX_LEN, "vel=0:time=0.1");
-	snprintf(lines[line++], MAX_LEN, "vel=0.2, acc=2, white=1, edgel=0:lv<4");
-	snprintf(lines[line++], MAX_LEN, "vel=0:time=0.1");
-	snprintf(lines[line++], MAX_LEN, "servo=3,pservo=1000:time=1");
-        snprintf(lines[line++], MAX_LEN, "vel=0, event=1:time=0.1");
-        sendAndActivateSnippet(lines, line);
+  case 40:
+    if (bridge->event->isEventSet(1))
+    {
+      int line = 0;
+      bridge->event->isEventSet(1);
 
-	printf("State 41\n");
-        state = 99;
-      }
-      break;
+      snprintf(lines[line++], MAX_LEN, "servo=3,pservo=-100:time=2");
+      snprintf(lines[line++], MAX_LEN, "vel=0.2,acc=2,tr=0.0 :turn=%.1f", (-1.0) * angle);
+      snprintf(lines[line++], MAX_LEN, "vel=-0.2,acc=2 :lv>16");
+      snprintf(lines[line++], MAX_LEN, "vel=0, event=1:time=0.1");
+      sendAndActivateSnippet(lines, line);
 
-    case 66:
-      {
-        int line = 0;
-	bridge->event->isEventSet(1);
-        snprintf(lines[line++], MAX_LEN, "vel=0.2, acc=2, tr=0.0: turn=90");
-	snprintf(lines[line++], MAX_LEN, "vel=0.2, acc=2, tr=0.0: turn=-5");
-	snprintf(lines[line++], MAX_LEN, "vel=0.3, acc=2, white=1, edgel=0: xl>16");
-        snprintf(lines[line++], MAX_LEN, "vel=0.0, acc=2:time=0.1");
-	snprintf(lines[line++], MAX_LEN, "vel=0.2, acc=2, tr=0.0: turn=90");
-        snprintf(lines[line++], MAX_LEN, "vel=0.0, acc=2:time=0.1");
-	snprintf(lines[line++], MAX_LEN, "vel=0.2, acc=2, white=1, edgel=0:lv<4");
-        snprintf(lines[line++], MAX_LEN, "vel=0.0, acc=2:time=0.1");
-	snprintf(lines[line++], MAX_LEN, "servo=3,pservo=1000:time=1");
-        snprintf(lines[line++], MAX_LEN, "vel=0, event=1:time=0.1");
-        sendAndActivateSnippet(lines, line);
-        printf("State 66\n");       
-        state = 99;
-      }
-      break;
+      printf("State 40\n");
+      state = 41;
+    }
+    break;
 
-    case 99:
-      if (bridge->event->isEventSet(1))
-      {
-        printf("State 99: Finishing task\n");       
-        state = 999;
-      }
-      break;
+  case 41:
+    if (bridge->event->isEventSet(1))
+    {
+      int line = 0;
+      bridge->event->isEventSet(1);
+      snprintf(lines[line++], MAX_LEN, "vel=0.2, tr=0.0: turn=90");
+      snprintf(lines[line++], MAX_LEN, "vel=0.2, tr=0.0: turn=-5");
+      snprintf(lines[line++], MAX_LEN, "vel=0.3, acc=2, white=1, edgel=0: xl>16");
+      snprintf(lines[line++], MAX_LEN, "vel=0:time=0.1");
+      snprintf(lines[line++], MAX_LEN, "vel=0.2, tr=0.0: turn=90");
+      snprintf(lines[line++], MAX_LEN, "vel=0:time=0.1");
+      snprintf(lines[line++], MAX_LEN, "vel=0.2, acc=2, white=1, edgel=0:lv<4");
+      snprintf(lines[line++], MAX_LEN, "vel=0:time=0.1");
+      snprintf(lines[line++], MAX_LEN, "servo=3,pservo=1000:time=1");
+      snprintf(lines[line++], MAX_LEN, "vel=0, event=1:time=0.1");
+      sendAndActivateSnippet(lines, line);
 
-    case 999:
-    default:
-      printf("mission 1 ended\n");
-      bridge->send("oled 5 mission 3 ended\n");
-      finished = true;
-      break;
+      printf("State 41\n");
+      state = 99;
+    }
+    break;
+
+  case 66:
+  {
+    int line = 0;
+    bridge->event->isEventSet(1);
+    snprintf(lines[line++], MAX_LEN, "vel=0.2, acc=2, tr=0.0: turn=90");
+    snprintf(lines[line++], MAX_LEN, "vel=0.2, acc=2, tr=0.0: turn=-5");
+    snprintf(lines[line++], MAX_LEN, "vel=0.3, acc=2, white=1, edgel=0: xl>16");
+    snprintf(lines[line++], MAX_LEN, "vel=0.0, acc=2:time=0.1");
+    snprintf(lines[line++], MAX_LEN, "vel=0.2, acc=2, tr=0.0: turn=90");
+    snprintf(lines[line++], MAX_LEN, "vel=0.0, acc=2:time=0.1");
+    snprintf(lines[line++], MAX_LEN, "vel=0.2, acc=2, white=1, edgel=0:lv<4");
+    snprintf(lines[line++], MAX_LEN, "vel=0.0, acc=2:time=0.1");
+    snprintf(lines[line++], MAX_LEN, "servo=3,pservo=1000:time=1");
+    snprintf(lines[line++], MAX_LEN, "vel=0, event=1:time=0.1");
+    sendAndActivateSnippet(lines, line);
+    printf("State 66\n");
+    state = 99;
+  }
+  break;
+
+  case 99:
+    if (bridge->event->isEventSet(1))
+    {
+      printf("State 99: Finishing task\n");
+      state = 999;
+    }
+    break;
+
+  case 999:
+  default:
+    printf("mission 1 ended\n");
+    bridge->send("oled 5 mission 3 ended\n");
+    finished = true;
+    break;
   }
   return finished;
 }
-
 
 bool UMission::mission3(int &state)
 {
@@ -725,15 +725,15 @@ bool UMission::mission4(int &state)
   switch (state)
   {
   case 0:
-    {
-      printf("Start following other robot\n");
-      int line = 0;
-      snprintf(lines[line++], MAX_LEN, "vel=0,event=3:time=0.5");
-      sendAndActivateSnippet(lines, line);
-      bridge->event->isEventSet(3);
-      state = 4;
-    }
-    break;
+  {
+    printf("Start following other robot\n");
+    int line = 0;
+    snprintf(lines[line++], MAX_LEN, "vel=0,event=3:time=0.5");
+    sendAndActivateSnippet(lines, line);
+    bridge->event->isEventSet(3);
+    state = 4;
+  }
+  break;
 
   case 4:
     if (bridge->event->isEventSet(3))

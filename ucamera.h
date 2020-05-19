@@ -21,7 +21,6 @@
 #ifndef UCAMERA_H
 #define UCAMERA_H
 
-
 #include <iostream>
 #include <sys/time.h>
 #include <thread>
@@ -41,7 +40,6 @@
 #include <raspicam/raspicam_cv.h>
 #endif
 
-
 using namespace std;
 
 /**
@@ -54,6 +52,12 @@ class UCamera : public URun
 public:
   // flag to save an image to disk
   bool saveImage = false;
+  // flag to perform object detection
+  bool doObjectDetection = false;
+  // distance result of object detection
+  float distanceToObject = 0.0;
+  // angle result of object detection
+  float angleToObject = 0.0;
   // flad to do ArUcoAnalysis
   bool doArUcoAnalysis = false;
   /// do loop-test (aruco log)
@@ -61,10 +65,10 @@ public:
   // opened OK
   bool cameraOpen = false;
   // detected ArUco markers
-  ArUcoVals * arUcos = NULL;
+  ArUcoVals *arUcos = NULL;
   // camera position on robot
-  cv::Vec3d camPos = {0.03, 0.03, 0.27}; /// x=fwd, y=left, z=up
-  cv::Vec3d camRot = {0, 10*M_PI/180.0, 0}; /// roll, tilt, yaw (right hand rule, radians)
+  cv::Vec3d camPos = {0.03, 0.03, 0.27};        /// x=fwd, y=left, z=up
+  cv::Vec3d camRot = {0, 10 * M_PI / 180.0, 0}; /// roll, tilt, yaw (right hand rule, radians)
   cv::Mat cam2robot;
   //
   /** camera matrix is a 3x3 matrix (raspberry PI typical values)
@@ -79,10 +83,9 @@ public:
    * [x,y,w] is pixel position for 3D position, when normalized, so that w=1
   */
   //cv::Mat cameraMatrix = cv::Mat(3,3, CV_64F, c_m);
-  const cv::Mat cameraMatrix = (cv::Mat_<double>(3,3) << 
-                       980,    0,    640, 
-                       0,    980,    480,  
-                       0,       0,     1);
+  const cv::Mat cameraMatrix = (cv::Mat_<double>(3, 3) << 980, 0, 640,
+                                0, 980, 480,
+                                0, 0, 1);
   /**
    * camera radial distortion vector 
    * 1 (k1)   0.14738
@@ -94,21 +97,21 @@ public:
    * and p1, p2 are tangential distortion 
    * see https://docs.opencv.org/2.4/doc/tutorials/calib3d/camera_calibration/camera_calibration.html 
    *   */
-  const cv::Mat distortionCoefficients = (cv::Mat_<double>(1,5) << 
-                       0.14738, 
-                       0.0117267, 
-                       0,  
-                       0, 
-                      -0.14143);
+  const cv::Mat distortionCoefficients = (cv::Mat_<double>(1, 5) << 0.14738,
+                                          0.0117267,
+                                          0,
+                                          0,
+                                          -0.14143);
+
 public:
   /** Constructor */
-  UCamera(UBridge * reg);
+  UCamera(UBridge *reg);
   /** destructor */
   ~UCamera();
   void stop();
   /**
    * find ArUco */
-//   int doArUcoProcessing(cv::Mat frame, int frameNumber);
+  //   int doArUcoProcessing(cv::Mat frame, int frameNumber);
   /**
    * print status for camera and image based functions */
   void printStatus();
@@ -120,24 +123,26 @@ public:
   void setPan(float pan);
   void setRoll(float roll);
   void setPos(float x, float y, float z);
-  
+
 private:
   // pointer to regbot interface
-  UBridge * bridge;
+  UBridge *bridge;
   // image saved number
   int imageNumber = 0;
   // time image was taken
   UTime imTime, im2Time;
   // logfile for images
-  FILE * logImg = NULL;
-//   /// logfile for ArUco extract
-//   FILE * logArUco = NULL;
+  FILE *logImg = NULL;
+  //   /// logfile for ArUco extract
+  //   FILE * logArUco = NULL;
 
 public:
   /**
    * Save image to flashdisk */
-  void saveImageAsPng(cv::Mat im, const char * filename = NULL);
-  
+  void saveImageAsPng(cv::Mat im, const char *filename = NULL);
+  /* Perform object detection */
+  void processBallDetection(cv::Mat im, const char *filename = NULL);
+
 protected:
   /**
    * The raw raspberry pi camera device, as defined by the
@@ -155,15 +160,15 @@ protected:
   void makeCamToRobotTransformation();
   /**
    * Aruco functions */
-//   string extractSingleMarker(cv::Vec3d rotationVectors, cv::Vec3d translationVectors, int markerId, cv::Mat rob_Ar_H);
+  //   string extractSingleMarker(cv::Vec3d rotationVectors, cv::Vec3d translationVectors, int markerId, cv::Mat rob_Ar_H);
   /**
    * convert radians to degree */
-//   inline double rad2deg( double a) { return a*180/M_PI;};
-//   inline double deg2rad( double a) { return a/180*M_PI;};
+  //   inline double rad2deg( double a) { return a*180/M_PI;};
+  //   inline double deg2rad( double a) { return a/180*M_PI;};
   /**
    * print out the values of tempArUcoVal to a log-file
    * */
-//public:
+  //public:
   /** Capture an image and load image to cv::Mat structure
    * \param image is the destination for the image
    * \returns timestamp when the image was grabbed. */
@@ -171,21 +176,22 @@ protected:
   /**
    * Configure camera */
   bool setupCamera()
-  { 
+  {
     bool isOpen = false;
     // image should be a multible of 320x240
     // or the image will be cropped
 #ifdef raspicam_CV_LIBS
-    int w = (2592/640)*320; // (2592/320)*320; // 320*5; //
-    int h = (1992/480)*240; // (1992/240)*240; // 240*3; //
+    int w = (2592 / 640) * 320; // (2592/320)*320; // 320*5; //
+    int h = (1992 / 480) * 240; // (1992/240)*240; // 240*3; //
     printf("image size %dx%d\n", h, w);
     //     camDev.setWidth(w);
-    camDev.set( CV_CAP_PROP_FORMAT, CV_8UC3 );
-    camDev.set( CV_CAP_PROP_FRAME_HEIGHT, h);
-    camDev.set( CV_CAP_PROP_FRAME_WIDTH, w);
-    cout<<"Connecting to camera"<<endl;
-    if ( !camDev.open() ) {
-      cerr<<"Error opening camera"<<endl;
+    camDev.set(CV_CAP_PROP_FORMAT, CV_8UC3);
+    camDev.set(CV_CAP_PROP_FRAME_HEIGHT, h);
+    camDev.set(CV_CAP_PROP_FRAME_WIDTH, w);
+    cout << "Connecting to camera" << endl;
+    if (!camDev.open())
+    {
+      cerr << "Error opening camera" << endl;
       return false;
     }
     else
@@ -193,10 +199,11 @@ protected:
     for (int i = 0; i < 30; i++)
       // just to make sure camera settings has reached steady state
       camDev.grab();
-    cout<<"Connected to pi-camera ='"<<camDev.getId() << "\r\n";
+    cout << "Connected to pi-camera ='" << camDev.getId() << "\r\n";
 #endif
     return isOpen;
   }
+
 public:
   /**
    * open logfile for saved images - inc timing */
@@ -210,10 +217,12 @@ public:
   void closeArucoLog();
   /// return true if log is open
   bool logCamIsOpen()
-  { return logImg != NULL; }
+  {
+    return logImg != NULL;
+  }
   /// return true if log is open
-//   bool logArucoIsOpen()
-//   { return logArUco != NULL; }
+  //   bool logArucoIsOpen()
+  //   { return logArUco != NULL; }
   /**
    * method to do the image analysis - see ucamera.cpp */
   void run();

@@ -683,6 +683,7 @@ bool UMission::mission3(int &state)
     {
       printf("Robot passed, get to the track\n");
 
+
       int line = 0;
 
       snprintf(lines[line++], MAX_LEN, "vel=0,acc=0, white=1, edgel=0:time=4");
